@@ -256,7 +256,7 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar bg="light" variant="light" className="border-bottom">
+      <Navbar bg="light" variant="light" className="border-bottom sticky-top">
         <Container className="d-flex align-items-center">
           <Navbar.Brand className="me-auto">Throttlr</Navbar.Brand>
           <div className="d-flex align-items-center gap-3">
