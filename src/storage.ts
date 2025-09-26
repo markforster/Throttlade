@@ -57,3 +57,39 @@ export async function ensureSchemaMigration(): Promise<void> {
   });
 }
 
+// ---------- Typed storage helpers (non-disruptive) ----------
+
+export async function getState(): Promise<AppState> {
+  const data = await chrome.storage.sync.get([
+    "schemaVersion",
+    "globalEnabled",
+    "projects",
+    "currentProjectId",
+  ]);
+
+  const schemaVersion = typeof data.schemaVersion === "number" ? data.schemaVersion : SCHEMA_VERSION;
+  const globalEnabled = typeof data.globalEnabled === "boolean" ? data.globalEnabled : true;
+  const projects: Project[] = Array.isArray(data.projects) ? data.projects : [];
+  const currentProjectId: string | null = typeof data.currentProjectId === "string" ? data.currentProjectId : (projects[0]?.id ?? null);
+
+  return { schemaVersion, globalEnabled, projects, currentProjectId };
+}
+
+export async function setState(partial: Partial<AppState>): Promise<void> {
+  await chrome.storage.sync.set(partial);
+}
+
+export type EffectiveState = {
+  projectId: string | null;
+  rules: Rule[];
+  effectiveEnabled: boolean;
+};
+
+export async function getEffectiveState(): Promise<EffectiveState> {
+  const state = await getState();
+  const selected = state.projects.find(p => p.id === state.currentProjectId) ?? state.projects[0];
+  const projectId = selected?.id ?? null;
+  const rules = selected?.rules ?? [];
+  const effectiveEnabled = Boolean(state.globalEnabled && (selected ? selected.enabled : true));
+  return { projectId, rules, effectiveEnabled };
+}

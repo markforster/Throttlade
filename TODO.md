@@ -13,17 +13,20 @@ This document breaks the “projects/domains” feature into small, iterative ta
 
 ## Data Model & Storage
 
-- [ ] Define storage schema (sync):
+- [x] Define storage schema (sync):
   - `globalEnabled: boolean`
   - `projects: Array<{ id: string, name: string, enabled: boolean, rules: Rule[] }>`
   - `currentProjectId: string | null`
-- [ ] Migration step: if legacy `rules` exists, create a default project:
-  - Name: "Default"
-  - `enabled: true`
-  - `rules: <legacy rules>`
-  - Set `currentProjectId` to this project’s id
-  - Remove legacy `rules` key after successful migration (keep `enabled` as `globalEnabled` if present)
-- [ ] Utilities: typed read/write helpers for storage keys and migration guard.
+- [ ] Migration step:
+  - [x] Create default project from legacy `rules` (if present)
+  - [x] Set `globalEnabled` from legacy `enabled` (default true)
+  - [x] Set `currentProjectId` to the new project’s id
+  - [ ] Remove legacy `rules` key once the UI is fully switched to projects (defer)
+  - [x] Stamp `schemaVersion = 1`
+- [ ] Utilities:
+  - [x] Add typed `getState`/`setState` helpers
+  - [x] Add idempotent `ensureSchemaMigration()`
+  - [x] Add `getEffectiveState()` helper (compute selected project + enabled)
 
 ## Background + Bridge + Page State Flow
 
@@ -35,6 +38,8 @@ This document breaks the “projects/domains” feature into small, iterative ta
 - [ ] Update `content-bridge.ts` message payload from `{ type: "STATE", rules, enabled }` to include `projectId` for debugging (optional): `{ type: "STATE", rules, enabled, projectId }`
 - [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
 - [ ] Reverify listeners for storage changes; recompute and rebroadcast on any of `globalEnabled`, `projects`, `currentProjectId`.
+- [x] Hook migration into background `onInstalled`/`onStartup` before reinjecting scripts.
+  - [x] Log computed effective state at startup/install (diagnostics only)
 
 ## Dashboard UI (Options Page)
 
@@ -95,9 +100,12 @@ This document breaks the “projects/domains” feature into small, iterative ta
 ## Rollout Steps
 
 - [ ] Implement storage schema + migration utilities
+  - [x] Define types (`Project`, `AppState`)
+  - [x] Add `ensureSchemaMigration()`
+  - [x] Add `getState`/`setState` helpers
+  - [x] Add `getEffectiveState()` helper
 - [ ] Update bridge to compute and post effective state
 - [ ] Wire content/inpage to new state
 - [ ] Implement dashboard navbar + project CRUD (read‑only display first, then write)
 - [ ] Collapse/expand add rule panel based on rule count
 - [ ] Final polish, docs, and screenshots
-

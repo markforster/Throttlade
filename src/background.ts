@@ -1,11 +1,19 @@
-import { ensureSchemaMigration } from "./storage";
+import { ensureSchemaMigration, getEffectiveState } from "./storage";
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureSchemaMigration().catch(() => {});
+  try {
+    const eff = await getEffectiveState();
+    console.log("[Throttlr][bg] effective state (install)", eff);
+  } catch {}
   reinjectAll();
 });
 chrome.runtime.onStartup.addListener(async () => {
   await ensureSchemaMigration().catch(() => {});
+  try {
+    const eff = await getEffectiveState();
+    console.log("[Throttlr][bg] effective state (startup)", eff);
+  } catch {}
   reinjectAll();
 });
 
