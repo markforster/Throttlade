@@ -394,95 +394,6 @@ function Dashboard() {
 
           { /* Collapse by default unless the selected project has no rules. */}
           { /* Controlled so it reacts when switching projects. */}
-          <Accordion
-            activeKey={addOpen ? "add" : undefined}
-            onSelect={() => setAddOpen((v) => !v)}
-            alwaysOpen={false}
-          >
-            <Accordion.Item eventKey="add">
-              <Accordion.Header>Add rule</Accordion.Header>
-              <Accordion.Body>
-                <Stack gap={3}>
-                  <Card.Text className="text-muted mb-0">
-                    Wildcard patterns use `*` (e.g. `/api/*`). Switch to regex for advanced matching.
-                  </Card.Text>
-
-                  <Form onSubmit={onSubmit}>
-                    <Row className="gy-3">
-                      <Col xs={12}>
-                        <Form.Group controlId="rule-pattern">
-                          <Form.Label>Pattern</Form.Label>
-                          <Form.Control
-                            name="pattern"
-                            placeholder="/api/* or ^https://api\\.site\\.com"
-                            required
-                          />
-                        </Form.Group>
-                      </Col>
-
-                      <Col md={4} xs={12}>
-                        <Form.Group controlId="rule-method">
-                          <Form.Label>Method</Form.Label>
-                          <Form.Select name="method" defaultValue="">
-                            <option value="">Any</option>
-                            <option>GET</option>
-                            <option>POST</option>
-                            <option>PUT</option>
-                            <option>PATCH</option>
-                            <option>DELETE</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-
-                      <Col md={4} xs={12}>
-                        <Form.Group controlId="rule-delay">
-                          <Form.Label>Delay (ms)</Form.Label>
-                          <Form.Control
-                            name="delayMs"
-                            type="number"
-                            min={0}
-                            step={50}
-                            defaultValue={2000}
-                          />
-                        </Form.Group>
-                      </Col>
-
-                      <Col md={4} xs={12}>
-                        <Form.Group controlId="rule-mode">
-                          <Form.Label>Match mode</Form.Label>
-                          <Form.Select
-                            name="mode"
-                            defaultValue="pattern"
-                            onChange={(event) => setIsRegex(event.target.value === "regex")}
-                          >
-                            <option value="pattern">Wildcard</option>
-                            <option value="regex">Regex</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-
-                      {isRegex ? (
-                        <Col xs={12}>
-                          <Badge bg="warning" text="dark">
-                            <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
-                            Regex mode: ensure the pattern is a valid JavaScript regular expression.
-                          </Badge>
-                        </Col>
-                      ) : null}
-
-                      <Col xs={12}>
-                        <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
-                          <Plus className="me-1" size={16} />
-                          Add rule
-                        </Button>
-                      </Col>
-                    </Row>
-                  </Form>
-                </Stack>
-              </Accordion.Body>
-            </Accordion.Item>
-          </Accordion>
-
           <Card>
             <Card.Body>
               <Stack gap={3}>
@@ -492,6 +403,95 @@ function Dashboard() {
                     Rules are evaluated top-down. New rules appear first.
                   </Card.Text>
                 </div>
+
+                <Accordion
+                  activeKey={addOpen ? "add" : undefined}
+                  onSelect={() => setAddOpen((v) => !v)}
+                  alwaysOpen={false}
+                >
+                  <Accordion.Item eventKey="add">
+                    <Accordion.Header>Add rule</Accordion.Header>
+                    <Accordion.Body>
+                      <Stack gap={3}>
+                        <Card.Text className="text-muted mb-0">
+                          Wildcard patterns use `*` (e.g. `/api/*`). Switch to regex for advanced matching.
+                        </Card.Text>
+
+                        <Form onSubmit={onSubmit}>
+                          <Row className="gy-3">
+                            <Col xs={12}>
+                              <Form.Group controlId="rule-pattern">
+                                <Form.Label>Pattern</Form.Label>
+                                <Form.Control
+                                  name="pattern"
+                                  placeholder="/api/* or ^https://api\\.site\\.com"
+                                  required
+                                />
+                              </Form.Group>
+                            </Col>
+
+                            <Col md={4} xs={12}>
+                              <Form.Group controlId="rule-method">
+                                <Form.Label>Method</Form.Label>
+                                <Form.Select name="method" defaultValue="">
+                                  <option value="">Any</option>
+                                  <option>GET</option>
+                                  <option>POST</option>
+                                  <option>PUT</option>
+                                  <option>PATCH</option>
+                                  <option>DELETE</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+
+                            <Col md={4} xs={12}>
+                              <Form.Group controlId="rule-delay">
+                                <Form.Label>Delay (ms)</Form.Label>
+                                <Form.Control
+                                  name="delayMs"
+                                  type="number"
+                                  min={0}
+                                  step={50}
+                                  defaultValue={2000}
+                                />
+                              </Form.Group>
+                            </Col>
+
+                            <Col md={4} xs={12}>
+                              <Form.Group controlId="rule-mode">
+                                <Form.Label>Match mode</Form.Label>
+                                <Form.Select
+                                  name="mode"
+                                  defaultValue="pattern"
+                                  onChange={(event) => setIsRegex(event.target.value === "regex")}
+                                >
+                                  <option value="pattern">Wildcard</option>
+                                  <option value="regex">Regex</option>
+                                </Form.Select>
+                              </Form.Group>
+                            </Col>
+
+                            {isRegex ? (
+                              <Col xs={12}>
+                                <Badge bg="warning" text="dark">
+                                  <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
+                                  Regex mode: ensure the pattern is a valid JavaScript regular expression.
+                                </Badge>
+                              </Col>
+                            ) : null}
+
+                            <Col xs={12}>
+                              <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
+                                <Plus className="me-1" size={16} />
+                                Add rule
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Form>
+                      </Stack>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
 
                 <Table striped bordered hover responsive size="sm" className="mb-0">
                   <thead>
