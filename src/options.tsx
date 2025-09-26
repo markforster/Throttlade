@@ -22,7 +22,7 @@ import {
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
-import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill, Asterisk, BracesAsterisk, CodeSlash, Download, Upload, ArrowRepeat, Pencil, FileX } from "react-bootstrap-icons";
+import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill, Asterisk, BracesAsterisk, CodeSlash, Download, Upload, ArrowRepeat, Pencil, FileX, PatchCheck } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -140,7 +140,7 @@ function Dashboard() {
       case "GET": return <Download size={14} />;
       case "POST": return <Upload size={14} />;
       case "PUT": return <ArrowRepeat size={14} />;
-      case "PATCH": return <Pencil size={14} />;
+      case "PATCH": return <PatchCheck size={14} />;
       case "DELETE": return <FileX size={14} />;
       default: return null;
     }
@@ -261,31 +261,50 @@ function Dashboard() {
     setShowDelete(false);
   };
 
+  const [editingRule, setEditingRule] = React.useState<Rule | null>(null);
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const pattern = String(fd.get("pattern") ?? "").trim();
     const delayMs = Number(fd.get("delayMs") ?? 0);
-    const method = String(fd.get("method") ?? "").toUpperCase() || undefined;
+    const methodRaw = String(fd.get("method") ?? "").toUpperCase();
+    const method = methodRaw || undefined;
     const mode = String(fd.get("mode") ?? "pattern");
     const regexMode = mode === "regex";
     if (!pattern) return;
 
-    const next: Rule = {
-      id: crypto.randomUUID(),
-      pattern,
-      isRegex: regexMode,
-      delayMs: Math.max(0, Math.round(delayMs)),
-      method,
-    };
-    save([next, ...rules]);
+    if (editingRule) {
+      const updated: Rule = {
+        ...editingRule,
+        pattern,
+        isRegex: regexMode,
+        delayMs: Math.max(0, Math.round(delayMs)),
+        method,
+      };
+      const nextRules = rules.map((r) => (r.id === editingRule.id ? updated : r));
+      save(nextRules);
+    } else {
+      const next: Rule = {
+        id: crypto.randomUUID(),
+        pattern,
+        isRegex: regexMode,
+        delayMs: Math.max(0, Math.round(delayMs)),
+        method,
+      };
+      save([next, ...rules]);
+    }
     e.currentTarget.reset();
     setIsRegex(false);
+    setEditingRule(null);
+    setShowAddRule(false);
   };
 
   const remove = (id: string) => save(rules.filter((r) => r.id !== id));
 
   const [showAddRule, setShowAddRule] = React.useState<boolean>(false);
+  const openAddRule = () => { setEditingRule(null); setIsRegex(false); setShowAddRule(true); };
+  const openEditRule = (r: Rule) => { setEditingRule(r); setIsRegex(Boolean(r.isRegex)); setShowAddRule(true); };
   const filteredRules = React.useMemo(() => {
     if (!selectedMethods || selectedMethods.size === 0) return rules;
     return rules.filter((r) => {
@@ -413,12 +432,12 @@ function Dashboard() {
       </Modal>
 
       {/* Add Rule Modal */}
-      <Modal show={showAddRule} onHide={() => setShowAddRule(false)} centered>
+      <Modal show={showAddRule} onHide={() => { setShowAddRule(false); setEditingRule(null); }} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Add rule</Modal.Title>
+          <Modal.Title>{editingRule ? 'Edit rule' : 'Add rule'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={(e) => { onSubmit(e); setShowAddRule(false); }}>
+          <Form onSubmit={onSubmit}>
             <Row className="gy-3">
               <Col xs={12}>
                 <Form.Group controlId="modal-rule-pattern">
@@ -427,6 +446,7 @@ function Dashboard() {
                     name="pattern"
                     placeholder="/api/* or ^https://api\\.site\\.com"
                     required
+                    defaultValue={editingRule?.pattern ?? ''}
                   />
                 </Form.Group>
               </Col>
@@ -434,7 +454,7 @@ function Dashboard() {
               <Col md={4} xs={12}>
                 <Form.Group controlId="modal-rule-method">
                   <Form.Label>Method</Form.Label>
-                  <Form.Select name="method" defaultValue="">
+                  <Form.Select name="method" defaultValue={editingRule?.method ?? ''}>
                     <option value="">Any</option>
                     <option>GET</option>
                     <option>POST</option>
@@ -453,7 +473,7 @@ function Dashboard() {
                     type="number"
                     min={0}
                     step={50}
-                    defaultValue={2000}
+                    defaultValue={editingRule?.delayMs ?? 2000}
                   />
                 </Form.Group>
               </Col>
@@ -463,7 +483,7 @@ function Dashboard() {
                   <Form.Label>Match mode</Form.Label>
                   <Form.Select
                     name="mode"
-                    defaultValue="pattern"
+                    defaultValue={editingRule?.isRegex ? 'regex' : 'pattern'}
                     onChange={(event) => setIsRegex(event.target.value === "regex")}
                   >
                     <option value="pattern">Wildcard</option>
@@ -482,10 +502,10 @@ function Dashboard() {
               ) : null}
             </Row>
             <div className="d-flex justify-content-end gap-2 mt-3">
-              <Button variant="secondary" type="button" onClick={() => setShowAddRule(false)}>Cancel</Button>
-              <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
+              <Button variant="secondary" type="button" onClick={() => { setShowAddRule(false); setEditingRule(null); }}>Cancel</Button>
+              <Button variant="primary" type="submit" title={editingRule ? 'Save rule' : 'Add rule'} aria-label={editingRule ? 'Save rule' : 'Add rule'}>
                 <Plus className="me-1" size={16} />
-                Add rule
+                {editingRule ? 'Save rule' : 'Add rule'}
               </Button>
             </div>
           </Form>
@@ -563,11 +583,11 @@ function Dashboard() {
                         </div>
                       </Dropdown.Menu>
                     </Dropdown>
-                    <Button variant="primary" size="sm" onClick={() => setShowAddRule(true)} title="Add rule" aria-label="Add rule">
-                      <Plus className="me-1" size={16} />
-                      Add rule
-                    </Button>
-                  </div>
+                  <Button variant="primary" size="sm" onClick={openAddRule} title="Add rule" aria-label="Add rule">
+                    <Plus className="me-1" size={16} />
+                    Add rule
+                  </Button>
+                </div>
                 </div>
 
                 <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
@@ -603,9 +623,13 @@ function Dashboard() {
                         <td className="text-end align-middle text-nowrap">{r.delayMs} ms</td>
                         <td className="text-end align-middle text-nowrap">
                           <ButtonGroup size="sm">
+                            <Button variant="outline-secondary" onClick={() => openEditRule(r)} title="Edit rule" aria-label="Edit rule">
+                              <Pencil className="me-1" size={16} />
+                              <span className="visually-hidden">Edit</span>
+                            </Button>
                             <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
-                              Delete
+                              <span className="visually-hidden">Delete</span>
                             </Button>
                           </ButtonGroup>
                         </td>
