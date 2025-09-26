@@ -60,6 +60,9 @@ function matches(url: string, method: string) {
         const re = new RegExp("^" + p.split("*").map(esc).join(".*") + "$");
         if (re.test(u.pathname)) return r;
       }
+
+      // Final fallback: treat pattern as a substring match
+      if (url.includes(p)) return r;
     } catch {
       // ignore invalid patterns and keep checking other rules
     }
@@ -85,6 +88,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   }
   return originalFetch(req);
 };
+
 
 // --- XHR patch (re-check rules at send time) ---
 const xhrOpen = XMLHttpRequest.prototype.open;
