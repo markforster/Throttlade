@@ -184,6 +184,7 @@ function Dashboard() {
 
   const [showAdd, setShowAdd] = React.useState(false);
   const [newProjectName, setNewProjectName] = React.useState("");
+  const [showDelete, setShowDelete] = React.useState(false);
 
   const openAdd = () => { setNewProjectName(""); setShowAdd(true); };
   const closeAdd = () => setShowAdd(false);
@@ -198,6 +199,25 @@ function Dashboard() {
     const merged = [nextProject, ...list];
     await chrome.storage.sync.set({ projects: merged, currentProjectId: id });
     setShowAdd(false);
+  };
+
+  const requestDeleteProject = () => setShowDelete(true);
+  const closeDelete = () => setShowDelete(false);
+
+  const confirmDeleteProject = async () => {
+    if (!currentId) return;
+    const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
+    const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
+    const remaining = list.filter(p => p.id !== currentId);
+    let nextList: Project[] = remaining;
+    let nextCurrentId: string | undefined = remaining[0]?.id;
+    if (remaining.length === 0) {
+      const def: Project = { id: crypto.randomUUID(), name: "Default", enabled: true, rules: [] };
+      nextList = [def];
+      nextCurrentId = def.id;
+    }
+    await chrome.storage.sync.set({ projects: nextList, currentProjectId: nextCurrentId });
+    setShowDelete(false);
   };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -270,6 +290,15 @@ function Dashboard() {
               disabled={!currentId}
             />
             <Button size="sm" variant="outline-primary" onClick={openAdd}>Add project</Button>
+            <Button
+              size="sm"
+              variant="outline-danger"
+              onClick={requestDeleteProject}
+              disabled={!currentId || projects.length <= 1}
+              title={projects.length <= 1 ? "Cannot delete the only project" : "Delete selected project"}
+            >
+              Delete
+            </Button>
           </div>
         </Container>
       </Navbar>
@@ -292,6 +321,19 @@ function Dashboard() {
         <Modal.Footer>
           <Button variant="secondary" onClick={closeAdd}>Cancel</Button>
           <Button variant="primary" onClick={saveNewProject} disabled={!newProjectName.trim()}>Save</Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showDelete} onHide={closeDelete} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete project</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this project? This removes its rules.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeDelete}>Cancel</Button>
+          <Button variant="danger" onClick={confirmDeleteProject}>Delete</Button>
         </Modal.Footer>
       </Modal>
 

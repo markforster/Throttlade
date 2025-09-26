@@ -57,8 +57,8 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [x] Fields: name (required)
   - [x] On save: create `{ id, name, enabled: true, rules: [] }`, set as `currentProjectId`
 - [ ] “Delete project” affordance:
-  - [ ] Button in navbar or in a project settings dropdown
-  - [ ] Confirm modal; prevent deletion if it’s the only project (or recreate a default project automatically)
+  - [x] Button in navbar
+  - [x] Confirm modal; prevent deletion when only one project (button disabled). If deletion empties the list, recreate a default project and select it.
 - [ ] Add rule panel behavior:
   - [x] When selected project has rules, render the “Add rule” card collapsed by default (`Accordion`)
   - [x] Auto‑expand when the project has no rules
