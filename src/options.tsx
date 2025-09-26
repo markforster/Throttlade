@@ -90,10 +90,12 @@ function useGlobalEnabled() {
       area: string
     ) => {
       if (area !== "sync") return;
-      if (changes[GLOBAL_ENABLED_KEY]) {
+      if (changes[GLOBAL_ENABLED_KEY])
+      {
         const next = changes[GLOBAL_ENABLED_KEY].newValue;
         if (typeof next === "boolean") setEnabled(next);
-      } else if (changes[ENABLED_KEY]) {
+      } else if (changes[ENABLED_KEY])
+      {
         const next = changes[ENABLED_KEY].newValue;
         if (typeof next === "boolean") setEnabled(next);
       }
@@ -217,7 +219,8 @@ function Dashboard() {
     const remaining = list.filter(p => p.id !== currentId);
     let nextList: Project[] = remaining;
     let nextCurrentId: string | undefined = remaining[0]?.id;
-    if (remaining.length === 0) {
+    if (remaining.length === 0)
+    {
       const def: Project = { id: crypto.randomUUID(), name: "Default", enabled: true, rules: [] };
       nextList = [def];
       nextCurrentId = def.id;
@@ -262,7 +265,7 @@ function Dashboard() {
           <Navbar.Brand className="me-auto">Throttlr</Navbar.Brand>
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center gap-2">
-              <span className="text-muted">Global:</span>
+              {/* <span className="text-muted">Global:</span> */}
               <Badge bg={enabled ? "success" : "secondary"}>
                 {enabled ? "Enabled" : "Disabled"}
               </Badge>
@@ -274,16 +277,26 @@ function Dashboard() {
                 title="Toggle global enable"
               />
             </div>
-            <div style={{ width: 1, height: 20, background: "#e5e5e5" }} />
           </div>
+        </Container>
+      </Navbar>
+
+      {/* Sub-navbar: project context (single row: left selector/add, right status/toggle/delete) */}
+      <div className="bg-light border-bottom">
+        <Container className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
           <div className="d-flex align-items-center gap-2">
+            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project">
+              <Plus className="me-1" size={16} />
+              Add project
+            </Button>
             <span className="text-muted">Project:</span>
             <BsForm.Select
               size="sm"
-              style={{ minWidth: 180 }}
+              className="w-auto"
               value={currentId}
               onChange={(e) => select(e.target.value)}
               disabled={projects.length === 0}
+              title="Select project"
             >
               {projects.length === 0 ? (
                 <option value="">No projects</option>
@@ -293,6 +306,11 @@ function Dashboard() {
                 ))
               )}
             </BsForm.Select>
+
+          </div>
+
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted">Status:</span>
             <Badge bg={currentEnabled ? "success" : "secondary"}>
               {currentEnabled ? "Enabled" : "Disabled"}
             </Badge>
@@ -311,10 +329,6 @@ function Dashboard() {
               title="Toggle project enable"
               disabled={!currentId}
             />
-            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project">
-              <Plus className="me-1" size={16} />
-              Add project
-            </Button>
             <Button
               size="sm"
               variant="outline-danger"
@@ -323,11 +337,11 @@ function Dashboard() {
               title={projects.length <= 1 ? "Cannot delete the only project" : "Delete selected project"}
             >
               <Trash3 className="me-1" size={16} />
-              Delete
+              {/* Delete project */}
             </Button>
           </div>
         </Container>
-      </Navbar>
+      </div>
 
       <Modal show={showAdd} onHide={closeAdd} centered>
         <Modal.Header closeButton>
@@ -366,151 +380,151 @@ function Dashboard() {
       <Container className="py-4">
         <Stack gap={4}>
 
-        { /* Collapse by default unless the selected project has no rules. */ }
-        { /* Controlled so it reacts when switching projects. */ }
-        <Accordion
-          activeKey={addOpen ? "add" : undefined}
-          onSelect={() => setAddOpen((v) => !v)}
-          alwaysOpen={false}
-        >
-          <Accordion.Item eventKey="add">
-            <Accordion.Header>Add rule</Accordion.Header>
-            <Accordion.Body>
-              <Stack gap={3}>
-                <Card.Text className="text-muted mb-0">
-                  Wildcard patterns use `*` (e.g. `/api/*`). Switch to regex for advanced matching.
-                </Card.Text>
+          { /* Collapse by default unless the selected project has no rules. */}
+          { /* Controlled so it reacts when switching projects. */}
+          <Accordion
+            activeKey={addOpen ? "add" : undefined}
+            onSelect={() => setAddOpen((v) => !v)}
+            alwaysOpen={false}
+          >
+            <Accordion.Item eventKey="add">
+              <Accordion.Header>Add rule</Accordion.Header>
+              <Accordion.Body>
+                <Stack gap={3}>
+                  <Card.Text className="text-muted mb-0">
+                    Wildcard patterns use `*` (e.g. `/api/*`). Switch to regex for advanced matching.
+                  </Card.Text>
 
-                <Form onSubmit={onSubmit}>
-                  <Row className="gy-3">
-                    <Col xs={12}>
-                      <Form.Group controlId="rule-pattern">
-                        <Form.Label>Pattern</Form.Label>
-                        <Form.Control
-                          name="pattern"
-                          placeholder="/api/* or ^https://api\\.site\\.com"
-                          required
-                        />
-                      </Form.Group>
-                    </Col>
-
-                    <Col md={4} xs={12}>
-                      <Form.Group controlId="rule-method">
-                        <Form.Label>Method</Form.Label>
-                        <Form.Select name="method" defaultValue="">
-                          <option value="">Any</option>
-                          <option>GET</option>
-                          <option>POST</option>
-                          <option>PUT</option>
-                          <option>PATCH</option>
-                          <option>DELETE</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-
-                    <Col md={4} xs={12}>
-                      <Form.Group controlId="rule-delay">
-                        <Form.Label>Delay (ms)</Form.Label>
-                        <Form.Control
-                          name="delayMs"
-                          type="number"
-                          min={0}
-                          step={50}
-                          defaultValue={2000}
-                        />
-                      </Form.Group>
-                    </Col>
-
-                    <Col md={4} xs={12}>
-                      <Form.Group controlId="rule-mode">
-                        <Form.Label>Match mode</Form.Label>
-                        <Form.Select
-                          name="mode"
-                          defaultValue="pattern"
-                          onChange={(event) => setIsRegex(event.target.value === "regex")}
-                        >
-                          <option value="pattern">Wildcard</option>
-                          <option value="regex">Regex</option>
-                        </Form.Select>
-                      </Form.Group>
-                    </Col>
-
-                    {isRegex ? (
+                  <Form onSubmit={onSubmit}>
+                    <Row className="gy-3">
                       <Col xs={12}>
-                        <Badge bg="warning" text="dark">
-                          <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
-                          Regex mode: ensure the pattern is a valid JavaScript regular expression.
-                        </Badge>
+                        <Form.Group controlId="rule-pattern">
+                          <Form.Label>Pattern</Form.Label>
+                          <Form.Control
+                            name="pattern"
+                            placeholder="/api/* or ^https://api\\.site\\.com"
+                            required
+                          />
+                        </Form.Group>
                       </Col>
-                    ) : null}
 
-                    <Col xs={12}>
-                      <Button variant="primary" type="submit" title="Add rule">
-                        <Plus className="me-1" size={16} />
-                        Add rule
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
-              </Stack>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
+                      <Col md={4} xs={12}>
+                        <Form.Group controlId="rule-method">
+                          <Form.Label>Method</Form.Label>
+                          <Form.Select name="method" defaultValue="">
+                            <option value="">Any</option>
+                            <option>GET</option>
+                            <option>POST</option>
+                            <option>PUT</option>
+                            <option>PATCH</option>
+                            <option>DELETE</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
 
-        <Card>
-          <Card.Body>
-            <Stack gap={3}>
-              <div>
-                <Card.Title className="h5 mb-0">Current rules</Card.Title>
-                <Card.Text className="text-muted mb-0">
-                  Rules are evaluated top-down. New rules appear first.
-                </Card.Text>
-              </div>
+                      <Col md={4} xs={12}>
+                        <Form.Group controlId="rule-delay">
+                          <Form.Label>Delay (ms)</Form.Label>
+                          <Form.Control
+                            name="delayMs"
+                            type="number"
+                            min={0}
+                            step={50}
+                            defaultValue={2000}
+                          />
+                        </Form.Group>
+                      </Col>
 
-              <Table striped bordered hover responsive size="sm" className="mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">Rule</th>
-                    <th scope="col" className="text-end">Delay</th>
-                    <th scope="col" className="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rules.map((r) => (
-                    <tr key={r.id}>
-                      <td>
-                        <Stack gap={1}>
-                          <span className="fw-semibold">{r.pattern}</span>
-                          <div className="text-muted small">
-                            {r.method ? <Badge bg="secondary" className="me-1">{r.method}</Badge> : null}
-                            <Badge bg={r.isRegex ? "info" : "success"}>{r.isRegex ? "Regex" : "Wildcard"}</Badge>
-                          </div>
-                        </Stack>
-                      </td>
-                      <td className="text-end align-middle">{r.delayMs} ms</td>
-                      <td className="text-end align-middle">
-                        <ButtonGroup size="sm">
-                          <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule">
-                            <Trash3 className="me-1" size={16} />
-                            Delete
-                          </Button>
-                        </ButtonGroup>
-                      </td>
-                    </tr>
-                  ))}
-                  {rules.length === 0 && (
+                      <Col md={4} xs={12}>
+                        <Form.Group controlId="rule-mode">
+                          <Form.Label>Match mode</Form.Label>
+                          <Form.Select
+                            name="mode"
+                            defaultValue="pattern"
+                            onChange={(event) => setIsRegex(event.target.value === "regex")}
+                          >
+                            <option value="pattern">Wildcard</option>
+                            <option value="regex">Regex</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+
+                      {isRegex ? (
+                        <Col xs={12}>
+                          <Badge bg="warning" text="dark">
+                            <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
+                            Regex mode: ensure the pattern is a valid JavaScript regular expression.
+                          </Badge>
+                        </Col>
+                      ) : null}
+
+                      <Col xs={12}>
+                        <Button variant="primary" type="submit" title="Add rule">
+                          <Plus className="me-1" size={16} />
+                          Add rule
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Form>
+                </Stack>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+
+          <Card>
+            <Card.Body>
+              <Stack gap={3}>
+                <div>
+                  <Card.Title className="h5 mb-0">Current rules</Card.Title>
+                  <Card.Text className="text-muted mb-0">
+                    Rules are evaluated top-down. New rules appear first.
+                  </Card.Text>
+                </div>
+
+                <Table striped bordered hover responsive size="sm" className="mb-0">
+                  <thead>
                     <tr>
-                      <td colSpan={3} className="text-center text-muted py-4">
-                        No rules yet. Add your first rule above.
-                      </td>
+                      <th scope="col">Rule</th>
+                      <th scope="col" className="text-end">Delay</th>
+                      <th scope="col" className="text-end">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </Table>
-            </Stack>
-          </Card.Body>
-        </Card>
-      </Stack>
+                  </thead>
+                  <tbody>
+                    {rules.map((r) => (
+                      <tr key={r.id}>
+                        <td>
+                          <Stack gap={1}>
+                            <span className="fw-semibold">{r.pattern}</span>
+                            <div className="text-muted small">
+                              {r.method ? <Badge bg="secondary" className="me-1">{r.method}</Badge> : null}
+                              <Badge bg={r.isRegex ? "info" : "success"}>{r.isRegex ? "Regex" : "Wildcard"}</Badge>
+                            </div>
+                          </Stack>
+                        </td>
+                        <td className="text-end align-middle">{r.delayMs} ms</td>
+                        <td className="text-end align-middle">
+                          <ButtonGroup size="sm">
+                            <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule">
+                              <Trash3 className="me-1" size={16} />
+                              Delete
+                            </Button>
+                          </ButtonGroup>
+                        </td>
+                      </tr>
+                    ))}
+                    {rules.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="text-center text-muted py-4">
+                          No rules yet. Add your first rule above.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </Stack>
+            </Card.Body>
+          </Card>
+        </Stack>
       </Container>
     </>
   );

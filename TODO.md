@@ -33,14 +33,14 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
   - [x] Add icon to regex warning badge
   - [ ] Ensure accessible labels/tooltips remain
 - [ ] Restructure navigation into two tiers
-  - [ ] Keep top Navbar for global controls only (brand + global enable)
-  - [ ] Add a sub‑navbar beneath for project context
-    - [ ] Left: project dropdown selector
-    - [ ] Next: “Add project” action
-  - [ ] Move project properties below sub‑navbar
-    - [ ] Project enabled switch
-    - [ ] Delete project button
-  - [ ] Preserve current behaviors and storage updates
+  - [x] Keep top Navbar for global controls only (brand + global enable)
+  - [x] Add a sub‑navbar beneath for project context
+    - [x] Left: project dropdown selector
+    - [x] Next: “Add project” action
+  - [x] Move project properties below sub‑navbar
+    - [x] Project enabled switch
+    - [x] Delete project button
+  - [x] Preserve current behaviors and storage updates
 
 ## QA & Validation
 
