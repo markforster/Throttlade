@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Card, Button, Form, Stack } from "react-bootstrap";
 
 const ENABLED_KEY = "enabled";
 
@@ -14,11 +15,7 @@ function useGlobalEnabled() {
       .get(ENABLED_KEY)
       .then(({ [ENABLED_KEY]: value }) => {
         if (!mounted) return;
-        if (typeof value === "boolean") {
-          setEnabled(value);
-        } else {
-          setEnabled(true);
-        }
+        setEnabled(typeof value === "boolean" ? value : true);
       });
 
     const onChanged = (
@@ -60,18 +57,30 @@ function PopupShell() {
   };
 
   return (
-    <div style={{ width: 260, padding: "12px 16px", fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif" }}>
-      <h1 style={{ fontSize: 16, margin: "0 0 12px" }}>Throttlr</h1>
+    <Card className="shadow-sm" style={{ width: 280 }}>
+      <Card.Body>
+        <Stack gap={3}>
+          <div>
+            <Card.Title as="h1" className="h5 mb-0">Throttlr</Card.Title>
+            <Card.Subtitle className="text-muted">Control request throttling</Card.Subtitle>
+          </div>
 
-      <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-        <input type="checkbox" checked={enabled} onChange={onToggle} />
-        <span>Enable throttling</span>
-      </label>
+          <Form>
+            <Form.Check
+              type="switch"
+              id="throttlr-enabled-toggle"
+              label="Enable throttling"
+              checked={enabled}
+              onChange={onToggle}
+            />
+          </Form>
 
-      <button type="button" onClick={openDashboard} style={{ width: "100%", padding: "8px 12px" }}>
-        Open dashboard
-      </button>
-    </div>
+          <Button variant="primary" onClick={openDashboard}>
+            Open dashboard
+          </Button>
+        </Stack>
+      </Card.Body>
+    </Card>
   );
 }
 
