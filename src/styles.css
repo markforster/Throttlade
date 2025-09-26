@@ -10,3 +10,9 @@
   transition: none !important;
 }
 
+/* Sticky sub-navbar sits below Bootstrap navbar (~56px height) */
+.subnav-sticky {
+  position: sticky;
+  top: 56px;
+  z-index: 1019; /* just under .navbar's 1020 */
+}

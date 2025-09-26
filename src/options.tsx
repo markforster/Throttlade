@@ -20,7 +20,7 @@ import {
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
-import { Plus, Trash3, ExclamationTriangleFill } from "react-bootstrap-icons";
+import { Plus, Trash3, ExclamationTriangleFill, Power } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -267,6 +267,7 @@ function Dashboard() {
             <div className="d-flex align-items-center gap-2">
               {/* <span className="text-muted">Global:</span> */}
               <Badge bg={enabled ? "success" : "secondary"}>
+                <Power className="me-1" size={14} aria-hidden="true" />
                 {enabled ? "Enabled" : "Disabled"}
               </Badge>
               <BsForm.Check
@@ -275,6 +276,7 @@ function Dashboard() {
                 checked={enabled}
                 onChange={(e) => update(e.target.checked)}
                 title="Toggle global enable"
+                aria-label="Toggle global enable"
               />
             </div>
           </div>
@@ -282,10 +284,10 @@ function Dashboard() {
       </Navbar>
 
       {/* Sub-navbar: project context (single row: left selector/add, right status/toggle/delete) */}
-      <div className="bg-light border-bottom">
+      <div className="bg-light border-bottom subnav-sticky">
         <Container className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
           <div className="d-flex align-items-center gap-2">
-            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project">
+            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project" aria-label="Add project">
               <Plus className="me-1" size={16} />
               Add project
             </Button>
@@ -311,6 +313,7 @@ function Dashboard() {
                 await chrome.storage.sync.set({ projects: merged });
               }}
               title="Toggle project enable"
+              aria-label="Toggle project enable"
               disabled={!currentId}
             />
             {/* <span className="text-muted">Project:</span> */}
@@ -321,6 +324,7 @@ function Dashboard() {
               onChange={(e) => select(e.target.value)}
               disabled={projects.length === 0}
               title="Select project"
+              aria-label="Select project"
             >
               {projects.length === 0 ? (
                 <option value="">No projects</option>
@@ -342,6 +346,7 @@ function Dashboard() {
               onClick={requestDeleteProject}
               disabled={!currentId || projects.length <= 1}
               title={projects.length <= 1 ? "Cannot delete the only project" : "Delete selected project"}
+              aria-label="Delete selected project"
             >
               <Trash3 className="me-1" size={16} />
               {/* Delete project */}
@@ -466,7 +471,7 @@ function Dashboard() {
                       ) : null}
 
                       <Col xs={12}>
-                        <Button variant="primary" type="submit" title="Add rule">
+                        <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
                           <Plus className="me-1" size={16} />
                           Add rule
                         </Button>
@@ -511,7 +516,7 @@ function Dashboard() {
                         <td className="text-end align-middle">{r.delayMs} ms</td>
                         <td className="text-end align-middle">
                           <ButtonGroup size="sm">
-                            <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule">
+                            <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
                               Delete
                             </Button>
