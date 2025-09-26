@@ -119,6 +119,19 @@ function Dashboard() {
   const { rules, save, projectId } = useProjectRules();
   const { enabled, update } = useGlobalEnabled();
   const [isRegex, setIsRegex] = React.useState(false);
+  const methodVariant = (method?: string) => {
+    const m = (method || "").toUpperCase();
+    switch (m) {
+      case "GET": return "success";
+      case "POST": return "info";
+      case "PUT": return "warning";
+      case "PATCH": return "primary";
+      case "DELETE": return "danger";
+      case "OPTIONS": return "secondary";
+      case "HEAD": return "secondary";
+      default: return "secondary"; // Any/unknown
+    }
+  };
 
   function useCurrentProjectName() {
     const [name, setName] = React.useState<string>("Default");
@@ -536,8 +549,8 @@ function Dashboard() {
                       </Dropdown.Menu>
                     </Dropdown>
                     <Button variant="primary" size="sm" onClick={() => setShowAddRule(true)} title="Add rule" aria-label="Add rule">
-                    <Plus className="me-1" size={16} />
-                    Add rule
+                      <Plus className="me-1" size={16} />
+                      Add rule
                     </Button>
                   </div>
                 </div>
@@ -545,7 +558,9 @@ function Dashboard() {
                 <Table striped bordered hover responsive size="sm" className="mb-0">
                   <thead>
                     <tr>
-                      <th scope="col">Rule</th>
+                      <th scope="col">URL / Path</th>
+                      <th scope="col">Method</th>
+                      <th scope="col">Match Mode</th>
                       <th scope="col" className="text-end">Delay</th>
                       <th scope="col" className="text-end">Actions</th>
                     </tr>
@@ -553,21 +568,19 @@ function Dashboard() {
                   <tbody>
                     {filteredRules.map((r) => (
                       <tr key={r.id}>
-                        <td>
-                          <Stack gap={1}>
-                            <span className="fw-semibold">{r.pattern}</span>
-                            <div className="text-muted small">
-                              {r.method ? <Badge bg="secondary" className="me-1">{r.method}</Badge> : null}
-                              <Badge bg={r.isRegex ? "info" : "success"}>{r.isRegex ? "Regex" : "Wildcard"}</Badge>
-                            </div>
-                          </Stack>
+                        <td className="align-middle"><span className="fw-semibold">{r.pattern}</span></td>
+                        <td className="align-middle">
+                          <Badge bg={methodVariant(r.method)}>{r.method || "Any"}</Badge>
+                        </td>
+                        <td className="align-middle">
+                          <Badge bg={r.isRegex ? "info" : "success"}>{r.isRegex ? "Regex" : "Wildcard"}</Badge>
                         </td>
                         <td className="text-end align-middle">{r.delayMs} ms</td>
                         <td className="text-end align-middle">
                           <ButtonGroup size="sm">
                             <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
-                              {/* Delete */}
+                              Delete
                             </Button>
                           </ButtonGroup>
                         </td>
@@ -575,14 +588,14 @@ function Dashboard() {
                     ))}
                     {rules.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="text-center text-muted py-4">
+                        <td colSpan={5} className="text-center text-muted py-4">
                           No rules yet. Click "Add rule" to create one.
                         </td>
                       </tr>
                     )}
                     {rules.length > 0 && filteredRules.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="text-center text-muted py-4">
+                        <td colSpan={5} className="text-center text-muted py-4">
                           No rules match the selected filters.
                         </td>
                       </tr>
