@@ -289,31 +289,15 @@ function Dashboard() {
               <Plus className="me-1" size={16} />
               Add project
             </Button>
-            <span className="text-muted">Project:</span>
-            <BsForm.Select
-              size="sm"
-              className="w-auto"
-              value={currentId}
-              onChange={(e) => select(e.target.value)}
-              disabled={projects.length === 0}
-              title="Select project"
-            >
-              {projects.length === 0 ? (
-                <option value="">No projects</option>
-              ) : (
-                projects.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name || "(Unnamed)"}</option>
-                ))
-              )}
-            </BsForm.Select>
+
 
           </div>
 
           <div className="d-flex align-items-center gap-2">
-            <span className="text-muted">Status:</span>
-            <Badge bg={currentEnabled ? "success" : "secondary"}>
+            {/* <span className="text-muted">Status:</span> */}
+            {/* <Badge bg={currentEnabled ? "success" : "secondary"}>
               {currentEnabled ? "Enabled" : "Disabled"}
-            </Badge>
+            </Badge> */}
             <BsForm.Check
               type="switch"
               id="project-enabled-toggle"
@@ -329,6 +313,29 @@ function Dashboard() {
               title="Toggle project enable"
               disabled={!currentId}
             />
+            {/* <span className="text-muted">Project:</span> */}
+            <BsForm.Select
+              size="sm"
+              className={`w-auto ${currentEnabled ? 'border-success' : 'border-secondary'}`}
+              value={currentId}
+              onChange={(e) => select(e.target.value)}
+              disabled={projects.length === 0}
+              title="Select project"
+            >
+              {projects.length === 0 ? (
+                <option value="">No projects</option>
+              ) : (
+                projects.map((p) => {
+                  const prefix = p.enabled ? '🟢 ' : '🔴 ';
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {prefix}{p.name || "(Unnamed)"}
+                    </option>
+                  );
+                })
+              )}
+            </BsForm.Select>
+
             <Button
               size="sm"
               variant="outline-danger"
