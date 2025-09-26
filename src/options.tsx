@@ -15,6 +15,7 @@ import {
   Table,
   Navbar,
   Form as BsForm,
+  Modal,
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
@@ -155,6 +156,24 @@ function Dashboard() {
 
   const { projects, currentId, currentEnabled, select } = useProjectSelector();
 
+  const [showAdd, setShowAdd] = React.useState(false);
+  const [newProjectName, setNewProjectName] = React.useState("");
+
+  const openAdd = () => { setNewProjectName(""); setShowAdd(true); };
+  const closeAdd = () => setShowAdd(false);
+
+  const saveNewProject = async () => {
+    const name = newProjectName.trim();
+    if (!name) return;
+    const id = crypto.randomUUID();
+    const nextProject: Project = { id, name, enabled: true, rules: [] };
+    const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
+    const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
+    const merged = [nextProject, ...list];
+    await chrome.storage.sync.set({ projects: merged, currentProjectId: id });
+    setShowAdd(false);
+  };
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -204,9 +223,31 @@ function Dashboard() {
             <Badge bg={currentEnabled ? "success" : "secondary"}>
               {currentEnabled ? "Enabled" : "Disabled"}
             </Badge>
+            <Button size="sm" variant="outline-primary" onClick={openAdd}>Add project</Button>
           </div>
         </Container>
       </Navbar>
+
+      <Modal show={showAdd} onHide={closeAdd} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add project</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <BsForm.Group controlId="new-project-name">
+            <BsForm.Label>Name</BsForm.Label>
+            <BsForm.Control
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              placeholder="e.g. Localhost, Staging, Prod"
+              autoFocus
+            />
+          </BsForm.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeAdd}>Cancel</Button>
+          <Button variant="primary" onClick={saveNewProject} disabled={!newProjectName.trim()}>Save</Button>
+        </Modal.Footer>
+      </Modal>
 
       <Container className="py-4">
         <Stack gap={4}>
