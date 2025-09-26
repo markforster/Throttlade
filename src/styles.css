@@ -16,3 +16,13 @@
   top: 56px;
   z-index: 1019; /* just under .navbar's 1020 */
 }
+
+/* Rules table layout: URL/Path column expands, others stay compact */
+.rules-table th:first-child,
+.rules-table td:first-child {
+  width: 100%;
+}
+.rules-table th:not(:first-child),
+.rules-table td:not(:first-child) {
+  white-space: nowrap;
+}

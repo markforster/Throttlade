@@ -570,21 +570,21 @@ function Dashboard() {
                   </div>
                 </div>
 
-                <Table striped bordered hover responsive size="sm" className="mb-0">
+                <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
                   <thead>
                     <tr>
-                      <th scope="col">URL / Path</th>
-                      <th scope="col">Method</th>
-                      <th scope="col">Match Mode</th>
-                      <th scope="col" className="text-end">Delay</th>
-                      <th scope="col" className="text-end">Actions</th>
+                      <th scope="col" className="w-100">URL / Path</th>
+                      <th scope="col" className="text-nowrap">Method</th>
+                      <th scope="col" className="text-nowrap">Match Mode</th>
+                      <th scope="col" className="text-end text-nowrap">Delay</th>
+                      <th scope="col" className="text-end text-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredRules.map((r) => (
                       <tr key={r.id}>
-                        <td className="align-middle"><span className="fw-semibold">{r.pattern}</span></td>
-                        <td className="align-middle">
+                        <td className="align-middle w-100"><span className="fw-semibold">{r.pattern}</span></td>
+                        <td className="align-middle text-nowrap">
                           <Badge bg={methodVariant(r.method)}>
                             {methodIcon(r.method) ? (
                               <span className="me-1" aria-hidden="true">{methodIcon(r.method)}</span>
@@ -592,7 +592,7 @@ function Dashboard() {
                             {r.method || "Any"}
                           </Badge>
                         </td>
-                        <td className="align-middle">
+                        <td className="align-middle text-nowrap">
                           <Badge className={r.isRegex ? "bg-light border border-dark text-dark" : "bg-light border border-secondary text-secondary"}>
                             <span className="me-1" aria-hidden="true">
                               {r.isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}
@@ -600,8 +600,8 @@ function Dashboard() {
                             {r.isRegex ? "Regex" : "Wildcard"}
                           </Badge>
                         </td>
-                        <td className="text-end align-middle">{r.delayMs} ms</td>
-                        <td className="text-end align-middle">
+                        <td className="text-end align-middle text-nowrap">{r.delayMs} ms</td>
+                        <td className="text-end align-middle text-nowrap">
                           <ButtonGroup size="sm">
                             <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
