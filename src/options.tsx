@@ -444,7 +444,8 @@ function Dashboard() {
                     ) : null}
 
                     <Col xs={12}>
-                      <Button variant="primary" type="submit">
+                      <Button variant="primary" type="submit" title="Add rule">
+                        <Plus className="me-1" size={16} />
                         Add rule
                       </Button>
                     </Col>
@@ -488,7 +489,8 @@ function Dashboard() {
                       <td className="text-end align-middle">{r.delayMs} ms</td>
                       <td className="text-end align-middle">
                         <ButtonGroup size="sm">
-                          <Button variant="outline-danger" onClick={() => remove(r.id)}>
+                          <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule">
+                            <Trash3 className="me-1" size={16} />
                             Delete
                           </Button>
                         </ButtonGroup>
