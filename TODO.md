@@ -30,7 +30,7 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
   - [x] Add Bootstrap Icons (`react-bootstrap-icons`)
   - [x] Replace/augment icons on Navbar buttons (Add project, Delete project)
   - [x] Add icons to rules table Delete and Add rule button
-  - [ ] Add icon to regex warning badge
+  - [x] Add icon to regex warning badge
   - [ ] Ensure accessible labels/tooltips remain
 - [ ] Restructure navigation into two tiers
   - [ ] Keep top Navbar for global controls only (brand + global enable)

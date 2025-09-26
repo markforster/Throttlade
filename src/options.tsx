@@ -20,7 +20,7 @@ import {
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
-import { Plus, Trash3 } from "react-bootstrap-icons";
+import { Plus, Trash3, ExclamationTriangleFill } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -438,6 +438,7 @@ function Dashboard() {
                     {isRegex ? (
                       <Col xs={12}>
                         <Badge bg="warning" text="dark">
+                          <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
                           Regex mode: ensure the pattern is a valid JavaScript regular expression.
                         </Badge>
                       </Col>
