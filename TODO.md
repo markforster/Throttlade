@@ -4,12 +4,12 @@ This document breaks the “projects/domains” feature into small, iterative ta
 
 ## Goals
 
-- [ ] Add first‑class “projects” (aka domains) to group throttling rules.
-- [ ] Let users select, add, and delete projects in the dashboard.
-- [ ] Persist rules per project; newly added rules are stored under the selected project.
-- [ ] Throttling applies only to the selected project’s rules.
-- [ ] Global enable toggle disables throttling across all projects when off; when on, effective throttling also requires the selected project to be enabled (per‑project enable/disable).
-- [ ] Keep current UX flow (add rule, list rules), but improve structure (collapsed add form if the project already has rules).
+- [x] Add first‑class “projects” (aka domains) to group throttling rules.
+- [x] Let users select, add, and delete projects in the dashboard.
+- [x] Persist rules per project; newly added rules are stored under the selected project.
+- [x] Throttling applies only to the selected project’s rules.
+- [x] Global enable toggle disables throttling across all projects when off; when on, effective throttling also requires the selected project to be enabled (per‑project enable/disable).
+- [x] Keep current UX flow (add rule, list rules), but improve structure (collapsed add form if the project already has rules).
 
 ## Data Model & Storage
 
@@ -69,22 +69,26 @@ This document breaks the “projects/domains” feature into small, iterative ta
 
 ## Popup UI
 
-- [ ] Keep existing global enable toggle and “Open dashboard” button.
+- [x] Keep existing global enable toggle and “Open dashboard” button.
 - [ ] Optional: display current project name for context (read from sync storage).
 - [ ] Optional: quick project switcher (small dropdown) — defer if scope creep.
 
 ## Throttling Logic Adjustments
 
-- [ ] Replace current rules source with selected project’s rules in both `content.ts` and `inpage.ts`.
-- [ ] Gate interception by `effectiveEnabled` (global AND project enabled must be true).
-- [ ] Maintain existing fetch/XHR patching semantics.
+- [x] inpage.ts: use STATE rules and `enabled` from bridge (selected project only)
+- [x] content.ts: prefer STATE rules and `enabled`; fallback to legacy storage
+- [x] Gate interception by `effectiveEnabled` (via `enabled` in STATE)
+- [ ] Cleanup: remove legacy storage reads once all consumers are project-aware
+- [ ] Maintain existing fetch/XHR patching semantics (observed)
 
 ## Backward Compatibility & Edge Cases
 
-- [ ] Handle extension update path: run migration once; guard with a versioned flag (e.g., `schemaVersion`).
-- [ ] If there are zero projects post‑migration (fresh install), create one default empty project and select it.
+- [x] Handle extension update path: run migration once; guard with a versioned flag (e.g., `schemaVersion`).
+- [x] If there are zero projects post‑migration (fresh install), create one default empty project and select it.
 - [ ] If `currentProjectId` points to a missing project, auto‑select the first available and repair storage.
-- [ ] Deleting the selected project should switch selection to another existing project (first in list).
+  - [x] Auto-select fallback in runtime (helpers/UI)
+  - [x] Persist repaired `currentProjectId` back to storage
+- [x] Deleting the selected project should switch selection to another existing project (first in list).
 
 ## Optional Future Enhancements (Defer)
 
@@ -111,10 +115,10 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [x] Add `ensureSchemaMigration()`
   - [x] Add `getState`/`setState` helpers
   - [x] Add `getEffectiveState()` helper
-- [ ] Update bridge to compute and post effective state
+- [x] Update bridge to compute and post effective state
   - [x] Bridge computes effective state via helper and posts `{ rules, enabled, projectId }`
   - [x] Fallback to legacy keys if helper fails
-- [ ] Wire content/inpage to new state
-- [ ] Implement dashboard navbar + project CRUD (read‑only display first, then write)
-- [ ] Collapse/expand add rule panel based on rule count
+- [x] Wire content/inpage to new state
+- [x] Implement dashboard navbar + project CRUD (read‑only display first, then write)
+- [x] Collapse/expand add rule panel based on rule count
 - [ ] Final polish, docs, and screenshots

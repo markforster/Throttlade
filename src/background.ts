@@ -1,7 +1,8 @@
-import { ensureSchemaMigration, getEffectiveState } from "./storage";
+import { ensureSchemaMigration, getEffectiveState, repairCurrentProjectId } from "./storage";
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureSchemaMigration().catch(() => {});
+  await repairCurrentProjectId().catch(() => {});
   try {
     const eff = await getEffectiveState();
     console.log("[Throttlr][bg] effective state (install)", eff);
@@ -10,6 +11,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 chrome.runtime.onStartup.addListener(async () => {
   await ensureSchemaMigration().catch(() => {});
+  await repairCurrentProjectId().catch(() => {});
   try {
     const eff = await getEffectiveState();
     console.log("[Throttlr][bg] effective state (startup)", eff);

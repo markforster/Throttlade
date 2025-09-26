@@ -93,3 +93,29 @@ export async function getEffectiveState(): Promise<EffectiveState> {
   const effectiveEnabled = Boolean(state.globalEnabled && (selected ? selected.enabled : true));
   return { projectId, rules, effectiveEnabled };
 }
+
+// Ensure currentProjectId points to an existing project. If not, repair it and
+// return true when a write occurred. Also ensures at least one default project
+// exists if the list is empty (defensive guard).
+export async function repairCurrentProjectId(): Promise<boolean> {
+  const data = await chrome.storage.sync.get(["projects", "currentProjectId"]) as {
+    projects?: Project[];
+    currentProjectId?: string;
+  };
+  let list: Project[] = Array.isArray(data.projects) ? data.projects as Project[] : [];
+
+  // If no projects, create a default one
+  if (list.length === 0) {
+    const def: Project = { id: crypto.randomUUID(), name: "Default", enabled: true, rules: [] };
+    list = [def];
+    await chrome.storage.sync.set({ projects: list, currentProjectId: def.id });
+    return true;
+  }
+
+  const has = typeof data.currentProjectId === "string" && list.some(p => p.id === data.currentProjectId);
+  if (has) return false;
+
+  const newId = list[0].id;
+  await chrome.storage.sync.set({ currentProjectId: newId });
+  return true;
+}
