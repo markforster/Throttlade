@@ -1,5 +1,13 @@
-chrome.runtime.onInstalled.addListener(() => reinjectAll());
-chrome.runtime.onStartup.addListener(() => reinjectAll());
+import { ensureSchemaMigration } from "./storage";
+
+chrome.runtime.onInstalled.addListener(async () => {
+  await ensureSchemaMigration().catch(() => {});
+  reinjectAll();
+});
+chrome.runtime.onStartup.addListener(async () => {
+  await ensureSchemaMigration().catch(() => {});
+  reinjectAll();
+});
 
 async function reinjectAll() {
   const tabs = await chrome.tabs.query({ url: ["http://*/*", "https://*/*"] });

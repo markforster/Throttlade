@@ -7,3 +7,18 @@ export type Rule = {
   delayMs: number; // integer ms
   method?: string; // GET/POST/... or ""
 };
+
+// Projects/domains (planning ahead). Adding types is safe and non-breaking.
+export type Project = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  rules: Rule[];
+};
+
+export type AppState = {
+  schemaVersion: number;
+  globalEnabled: boolean;
+  projects: Project[];
+  currentProjectId: string | null;
+};
