@@ -25,6 +25,7 @@ import type { Rule, Project } from "./types";
 import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill, Asterisk, BracesAsterisk, CodeSlash, Pencil } from "react-bootstrap-icons";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "./utils/rules-ui";
 
+const LOGO_SIZE = 48;
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
 const RULES_KEY = "rules"; // legacy compatibility
@@ -357,13 +358,14 @@ function Dashboard() {
         <Container className="d-flex align-items-center">
           <Navbar.Brand className="me-auto d-flex align-items-center">
             <img
-              src="icons/favicon.svg"
+              src="icons/web-app-manifest-192x192.png"
               alt=""
-              width={20}
-              height={20}
+              width={LOGO_SIZE}
+              height={LOGO_SIZE}
               className="me-2"
+              style={{ borderRadius: "0.25em", border: "solid 1px #6b6b6bff" }}
             />
-            Throttlr
+            Throttlade
           </Navbar.Brand>
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center gap-2">
@@ -644,7 +646,7 @@ function Dashboard() {
                           </Badge>
                         </td>
                         <td className="align-middle text-nowrap">
-                          <Badge className={matchModeBadgeClasses(r.isRegex)}>
+                          <Badge className={matchModeBadgeClasses(!!r.isRegex)}>
                             <span className="me-1" aria-hidden="true">
                               {r.isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}
                             </span>

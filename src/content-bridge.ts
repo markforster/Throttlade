@@ -57,3 +57,21 @@ chrome.storage.onChanged.addListener((changes, area) => {
     computeAndSend();
   }
 });
+
+// Forward main-world requests to prime STREAM throttling to the background SW
+window.addEventListener("message", (ev: MessageEvent) => {
+  const d = ev.data as any;
+  if (!d || !d.__THROTTLR__) return;
+  if (d.type === "THROTTLE_STREAM_PRIME" && d.ctx) {
+    try {
+      chrome.runtime.sendMessage({ type: "THROTTLE_STREAM_PRIME", ctx: d.ctx }, () => {
+        // Ack back to the main world so it can proceed
+        try {
+          window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME_ACK", id: d.id || null }, "*");
+        } catch {}
+      });
+    } catch {
+      // ignore if not available
+    }
+  }
+});

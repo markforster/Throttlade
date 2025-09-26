@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Throttlr Demo – Fetch vs XHR</title>
+    <style>
+      :root { font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      body { margin: 2rem; }
+      h1 { margin: 0 0 0.5rem; }
+      .row { display: flex; gap: 8px; align-items: center; margin: 0.5rem 0 1rem; }
+      input[type="text"] { width: 520px; padding: 6px 8px; }
+      button { padding: 8px 12px; cursor: pointer; }
+      pre { background: #111; color: #0f0; padding: 12px; border-radius: 6px; max-height: 50vh; overflow: auto; }
+      .muted { color: #666; }
+    </style>
+  </head>
+  <body>
+    <h1>Throttlr Demo</h1>
+    <p class="muted">Simple page to trigger requests for testing the extension’s throttling.</p>
+
+    <div class="row">
+      <label for="url">URL</label>
+      <input id="url" type="text" value="https://catfact.ninja/fact" />
+      <button id="btn-fetch">Fetch</button>
+      <button id="btn-xhr">XMLHttpRequest</button>
+    </div>
+    <div class="row">
+      <label><input id="use-proxy" type="checkbox" checked /> Use public CORS proxy</label>
+      <span class="muted">(for cross-origin from localhost)</span>
+    </div>
+
+    <pre id="log"></pre>
+
+    <script>
+      const logEl = document.getElementById('log');
+      const urlEl = document.getElementById('url');
+
+      function log(line) {
+        const ts = new Date().toISOString().split('T')[1].replace('Z','');
+        logEl.textContent += `[${ts}] ${line}\n`;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function buildUrl(raw) {
+        const u = raw.trim();
+        const useProxy = document.getElementById('use-proxy').checked;
+        try {
+          const parsed = new URL(u);
+          // If cross-origin and proxy enabled, route via public CORS proxy
+          if (useProxy && parsed.origin !== window.location.origin) {
+            return 'https://cors.isomorphic-git.org/' + u;
+          }
+        } catch { /* not absolute URL */ }
+        return u;
+      }
+
+      async function doFetch() {
+        const url = buildUrl(urlEl.value);
+        const t0 = performance.now();
+        log(`Fetch → ${url}`);
+        try {
+          const res = await fetch(url, { method: 'GET' });
+          const t1 = performance.now();
+          log(`  status: ${res.status}`);
+          log(`  headers: content-type=${res.headers.get('content-type')}`);
+          const txt = await res.text();
+          const t2 = performance.now();
+          log(`  body length: ${txt.length}`);
+          log(`  timings: ttfb≈${(t1 - t0).toFixed(1)}ms, total=${(t2 - t0).toFixed(1)}ms`);
+        } catch (e) {
+          log(`  ERROR: ${e && e.message || e}`);
+        }
+      }
+
+      function doXHR() {
+        const url = buildUrl(urlEl.value);
+        const xhr = new XMLHttpRequest();
+        let t0 = 0;
+        let bytes = 0;
+        log(`XHR → ${url}`);
+        xhr.open('GET', url, true);
+        xhr.responseType = 'text';
+        xhr.addEventListener('readystatechange', () => {
+          if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+            log(`  headers received: status=${xhr.status}`);
+          }
+          if (xhr.readyState === XMLHttpRequest.LOADING && t0 === 0) {
+            t0 = performance.now();
+          }
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            const total = performance.now() - (t0 || performance.now());
+            log(`  done: status=${xhr.status}, bytes=${bytes || (xhr.responseText || '').length}, total≈${total.toFixed(1)}ms`);
+          }
+        });
+        xhr.addEventListener('progress', (ev) => {
+          if (ev.lengthComputable) {
+            bytes = ev.loaded;
+          }
+        });
+        xhr.addEventListener('error', () => log('  ERROR: network'));
+        xhr.addEventListener('timeout', () => log('  ERROR: timeout'));
+        xhr.send();
+      }
+
+      document.getElementById('btn-fetch').addEventListener('click', doFetch);
+      document.getElementById('btn-xhr').addEventListener('click', doXHR);
+    </script>
+  </body>
+  </html>

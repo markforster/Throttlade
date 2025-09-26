@@ -26,11 +26,14 @@ function useGlobalEnabled() {
       changes: { [key: string]: chrome.storage.StorageChange },
       area: string
     ) => {
-      if (area === "sync") {
-        if (changes[GLOBAL_ENABLED_KEY]) {
+      if (area === "sync")
+      {
+        if (changes[GLOBAL_ENABLED_KEY])
+        {
           const next = changes[GLOBAL_ENABLED_KEY].newValue;
           if (typeof next === "boolean") setEnabled(next);
-        } else if (changes[ENABLED_KEY]) {
+        } else if (changes[ENABLED_KEY])
+        {
           // If only legacy key changed, mirror it
           const next = changes[ENABLED_KEY].newValue;
           if (typeof next === "boolean") setEnabled(next);
@@ -70,7 +73,7 @@ function PopupShell() {
       <Card.Body>
         <Stack gap={3}>
           <div>
-            <Card.Title as="h1" className="h5 mb-0">Throttlr</Card.Title>
+            <Card.Title as="h1" className="h5 mb-0">Throttlade</Card.Title>
             <Card.Subtitle className="text-muted">Control request throttling</Card.Subtitle>
           </div>
 

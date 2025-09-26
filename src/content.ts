@@ -1,4 +1,6 @@
 import { Rule } from "./types";
+import { THROTTLE_STRATEGY } from "./utils/featureFlags";
+import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -42,7 +44,24 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = typeof input === "string" ? input : (input as Request).url;
   const method = (init?.method || (typeof input !== "string" && (input as Request).method) || "GET");
   const rule = matches(url, method);
-  if (rule) await delay(rule.delayMs);
+  if (rule) {
+    // Old timeout-based delay (commented out during strategy integration):
+    // await delay(rule.delayMs);
+
+    // New strategy selection
+    const ctx: ThrottleContext = { url, method, throttleMs: rule.delayMs };
+    if (THROTTLE_STRATEGY === "TIMEOUT") {
+      await throttleWithTimeout(ctx);
+    } else {
+      // STREAM strategy: prime background to throttle the matching response.
+      // Fire-and-wait-for-primed ack so the listener is set before the request.
+      try {
+        await chrome.runtime.sendMessage({ type: "THROTTLE_STREAM_PRIME", ctx });
+      } catch {
+        // If messaging fails, we simply proceed without stream throttling.
+      }
+    }
+  }
   return originalFetch(input, init);
 };
 
@@ -50,11 +69,39 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 const xhrOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: any[]) {
   (this as any).__throttleRule = matches(url, method);
+  // Store normalized context to allow STREAM strategy to target exact URL
+  try {
+    const abs = new URL(url, document.baseURI).toString();
+    (this as any).__throttlrCtx = { method: (method || "GET").toUpperCase(), url: abs };
+  } catch {
+    (this as any).__throttlrCtx = { method: (method || "GET").toUpperCase(), url: String(url) };
+  }
   return xhrOpen.call(this, method, url, ...rest);
 };
 const xhrSend = XMLHttpRequest.prototype.send;
 XMLHttpRequest.prototype.send = async function (...args: any[]) {
   const rule = enabled ? ((this as any).__throttleRule as Rule | undefined) : undefined;
-  if (rule) await delay(rule.delayMs);
+  if (rule) {
+    // Old timeout-based delay (commented out during strategy integration):
+    // await delay(rule.delayMs);
+
+    const method = (this as any)?.__throttlrCtx?.method || (this as any)?.__throttleRule?.method || "GET";
+    const currentUrl = (this as any)?.__throttlrCtx?.url || (this as any)?.responseURL;
+    const ctx: ThrottleContext = {
+      url: currentUrl || url || "",
+      method,
+      throttleMs: rule.delayMs,
+    };
+
+    if (THROTTLE_STRATEGY === "TIMEOUT") {
+      await throttleWithTimeout(ctx);
+    } else {
+      try {
+        await chrome.runtime.sendMessage({ type: "THROTTLE_STREAM_PRIME", ctx });
+      } catch {
+        // fall through
+      }
+    }
+  }
   return xhrSend.apply(this, args as any);
 };

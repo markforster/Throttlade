@@ -1,4 +1,5 @@
 import { ensureSchemaMigration, getEffectiveState, repairCurrentProjectId } from "./storage";
+import { throttleWithStream, type ThrottleContext } from "./utils/throttling";
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureSchemaMigration().catch(() => {});
@@ -50,6 +51,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "OPEN_DASHBOARD_TAB") {
     openDashboardTab().then(() => sendResponse(true)).catch(() => sendResponse(false));
     return true; // keep channel open for async response
+  }
+  if (message?.type === "THROTTLE_STREAM_PRIME" && message.ctx) {
+    try {
+      const ctx = message.ctx as ThrottleContext;
+      // Start stream throttling asynchronously; respond immediately so callers can proceed.
+      // Do not await here to avoid holding the message channel for the entire transfer.
+      throttleWithStream(ctx).catch(() => {});
+      sendResponse({ started: true });
+    } catch {
+      sendResponse({ started: false });
+    }
+    return true;
   }
   return undefined;
 });

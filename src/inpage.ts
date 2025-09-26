@@ -1,6 +1,8 @@
 // --- src/inpage.ts ---
 
 import { Rule } from "./types";
+import { THROTTLE_STRATEGY } from "./utils/featureFlags";
+import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
 
 let rules: Rule[] = [];
 let enabled = true;
@@ -84,7 +86,30 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const rule = matches(req.url, req.method || "GET");
   if (rule) {
     console.log("Throttlr fetch intercepted", req.url, { method: req.method, delayMs: rule.delayMs });
-    await delay(rule.delayMs);
+    // Old timeout-based delay (commented out during strategy integration):
+    // await delay(rule.delayMs);
+
+    const ctx: ThrottleContext = { url: req.url, method: req.method || "GET", throttleMs: rule.delayMs };
+    if (THROTTLE_STRATEGY === "TIMEOUT") {
+      await throttleWithTimeout(ctx);
+    } else {
+      // Main world cannot use chrome.*; ask bridge to prime streaming and await ACK to reduce race.
+      const id = Math.random().toString(36).slice(2);
+      const ack = new Promise<void>((resolve) => {
+        const onMsg = (ev: MessageEvent) => {
+          const m = ev.data;
+          if (m && m.__THROTTLR__ && m.type === "THROTTLE_STREAM_PRIME_ACK" && m.id === id) {
+            window.removeEventListener("message", onMsg);
+            resolve();
+          }
+        };
+        window.addEventListener("message", onMsg);
+        // Safety: resolve after small delay even if no ack to avoid blocking
+        setTimeout(() => { window.removeEventListener("message", onMsg); resolve(); }, 100);
+      });
+      window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME", id, ctx }, "*");
+      await ack;
+    }
   }
   return originalFetch(req);
 };
@@ -123,7 +148,28 @@ XMLHttpRequest.prototype.send = async function (...args: any[]) {
   console.log("Throttlr XMLHttpRequest send rule match?", rule, ctx);
   if (rule) {
     console.log("Throttlr XHR delaying", { url: ctx!.url, method: ctx!.method, delayMs: rule.delayMs });
-    await delay(rule.delayMs);
+    // Old timeout-based delay (commented out during strategy integration):
+    // await delay(rule.delayMs);
+
+    const tctx: ThrottleContext = { url: ctx?.url || "", method: ctx?.method || "GET", throttleMs: rule.delayMs };
+    if (THROTTLE_STRATEGY === "TIMEOUT") {
+      await throttleWithTimeout(tctx);
+    } else {
+      const id = Math.random().toString(36).slice(2);
+      const ack = new Promise<void>((resolve) => {
+        const onMsg = (ev: MessageEvent) => {
+          const m = ev.data;
+          if (m && m.__THROTTLR__ && m.type === "THROTTLE_STREAM_PRIME_ACK" && m.id === id) {
+            window.removeEventListener("message", onMsg);
+            resolve();
+          }
+        };
+        window.addEventListener("message", onMsg);
+        setTimeout(() => { window.removeEventListener("message", onMsg); resolve(); }, 100);
+      });
+      window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME", id, ctx: tctx }, "*");
+      await ack;
+    }
   }
 
   return xhrSend.apply(this, args as any);
