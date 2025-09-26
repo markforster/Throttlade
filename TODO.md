@@ -77,6 +77,56 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 - [ ] Project dropdown closes when toggling a project's enable switch in the menu. Expected: menu stays open on toggle; only selecting a project name should close it. Current attempt with `autoClose={false}` and controlled `show` did not resolve; investigate event handling in React Bootstrap Dropdown.
 - [ ] Project dropdown row selection: user must click exactly on the text to select a project. Expected: clicking anywhere on the row (except the toggle) selects the project. Make the entire row clickable while keeping the toggle interactive without closing the dropdown.
 
+## Refactoring
+
+The options page has grown large; extract cohesive units into components, hooks, and utilities. Aim for readability, testability, and reuse between popup/options if needed. No behavior changes.
+
+Components (src/components)
+- [ ] ProjectDropdown: the custom selector + inline toggle (already in-file)
+  - [ ] Move to `src/components/ProjectDropdown.tsx` and accept props: `projects, currentId, onSelect, onToggle`
+- [ ] RulesHeader: left help tooltip + title; right filter dropdown + Add rule button
+  - [ ] Move filter dropdown into `MethodFilterDropdown` child component
+  - [ ] Expose callbacks: `onAddRule`, `selectedMethods`, `setSelectedMethods`
+- [ ] RulesTable: renders table only (no header/footer)
+  - [ ] Props: `rules, onEdit, onDelete`
+  - [ ] Internal helpers for method/mode badges
+- [ ] AddEditRuleModal: shared modal for add/edit
+  - [ ] Props: `show, rule, onSubmit, onClose`
+- [ ] ConfirmDeleteRuleModal: confirm dialog
+  - [ ] Props: `show, rule, onConfirm, onClose`
+- [ ] AddProjectModal / DeleteProjectModal
+  - [ ] Props as needed; centralize creation/validation logic
+
+Hooks (src/hooks)
+- [ ] useGlobalEnabled: move from options.tsx to `src/hooks/useGlobalEnabled.ts`
+- [ ] useProjectSelector: move to `src/hooks/useProjects.ts` and expose:
+  - [ ] `projects, currentId, select, setEnabled(projectId, bool)`
+  - [ ] Helpers for add/delete project
+- [ ] useProjectRules: move to `src/hooks/useRules.ts` and expose:
+  - [ ] `rules, save, add(rule), update(rule), remove(id)`
+  - [ ] Derived `filteredRules` (method filters), later: search/group/sort
+- [ ] useMethodFilter: encapsulate METHODS list, `selectedMethods`, setters, and filtering helper
+- [ ] useDropdownControlled: small helper to control `show` with `autoClose={false}` for complex Dropdowns
+
+Utilities (src/utils)
+- [ ] methodVariant(method: string): map HTTP verb → badge variant
+- [ ] methodIcon(method: string): map HTTP verb → icon JSX
+- [ ] matchModeBadgeProps(isRegex: boolean): classes/icon helper
+- [ ] tableLayout helpers/constants (column labels, order)
+
+Styles
+- [ ] Move rules-table and dropdown hover overrides into a dedicated stylesheet `src/styles/options.css` imported only by options.tsx
+
+File organization & size targets
+- [ ] Reduce `src/options.tsx` to a thin orchestration file (~150–250 lines)
+- [ ] New directories: `src/components`, `src/hooks`, `src/utils`, `src/styles`
+
+Incremental migration plan
+- [ ] Extract utilities first (no JSX), update imports
+- [ ] Move hooks (useGlobalEnabled, useProjectSelector, useProjectRules)
+- [ ] Extract MethodFilterDropdown and ProjectDropdown as standalone components
+- [ ] Extract modals (Add/Edit Rule, Confirm Delete Rule, Add/Delete Project)
+- [ ] Extract RulesTable and RulesHeader last; wire everything through
 ## Advanced Table Features (Ambitious)
 
 These features add richer control to the rules list. They should be additive and must not change the underlying storage order or existing behavior unless explicitly enabled. All features should cooperate with current method filters and per‑project selection.
