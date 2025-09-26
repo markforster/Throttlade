@@ -59,9 +59,9 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [ ] Button in navbar or in a project settings dropdown
   - [ ] Confirm modal; prevent deletion if it’s the only project (or recreate a default project automatically)
 - [ ] Add rule panel behavior:
-  - [ ] When selected project has rules, render the “Add rule” card collapsed by default (`Accordion`)
-  - [ ] Auto‑expand when the project has no rules
-  - [ ] Ensure submitting a rule always targets the selected project
+  - [x] When selected project has rules, render the “Add rule” card collapsed by default (`Accordion`)
+  - [x] Auto‑expand when the project has no rules
+  - [x] Ensure submitting a rule always targets the selected project
 - [x] Rules table filters only the selected project’s rules; show empty state if none.
 - [ ] Per‑project enable switch in the dashboard header; label clarifies global vs project enable relationship.
 
