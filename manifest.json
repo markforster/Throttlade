@@ -1,10 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Throttlr",
+  "name": "Throttlade",
   "version": "0.0.1",
   "action": {
-    "default_title": "Throttlr",
-    "default_popup": "popup.html"
+    "default_title": "Throttlade",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/favicon.ico",
+      "32": "icons/favicon-96x96.png",
+      "48": "icons/apple-touch-icon.png",
+      "128": "icons/web-app-manifest-192x192.png"
+    }
+  },
+  "icons": {
+    "16": "icons/favicon.ico",
+    "32": "icons/favicon-96x96.png",
+    "48": "icons/apple-touch-icon.png",
+    "128": "icons/web-app-manifest-192x192.png"
   },
   "background": {
     "service_worker": "background.js",

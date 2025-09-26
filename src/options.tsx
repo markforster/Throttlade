@@ -355,7 +355,16 @@ function Dashboard() {
     <>
       <Navbar bg="light" variant="light" className="border-bottom sticky-top">
         <Container className="d-flex align-items-center">
-          <Navbar.Brand className="me-auto">Throttlr</Navbar.Brand>
+          <Navbar.Brand className="me-auto d-flex align-items-center">
+            <img
+              src="icons/favicon.svg"
+              alt=""
+              width={20}
+              height={20}
+              className="me-2"
+            />
+            Throttlr
+          </Navbar.Brand>
           <div className="d-flex align-items-center gap-3">
             <div className="d-flex align-items-center gap-2">
               {/* <span className="text-muted">Global:</span> */}

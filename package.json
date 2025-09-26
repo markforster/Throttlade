@@ -1,6 +1,6 @@
 {
-  "name": "throttlr",
-  "version": "1.0.0",
+  "name": "throttlade",
+  "version": "0.0.1",
   "main": "index.js",
   "dependencies": {
     "bootstrap": "^5.3.8",
