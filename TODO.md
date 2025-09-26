@@ -64,7 +64,8 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [x] Auto‑expand when the project has no rules
   - [x] Ensure submitting a rule always targets the selected project
 - [x] Rules table filters only the selected project’s rules; show empty state if none.
-- [ ] Per‑project enable switch in the dashboard header; label clarifies global vs project enable relationship.
+- [x] Per‑project enable switch in the dashboard header; label clarifies global vs project enable relationship.
+- [x] Global enable indicator + toggle moved to Navbar (removed old card)
 
 ## Popup UI
 

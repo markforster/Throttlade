@@ -22,6 +22,7 @@ import {
 import type { Rule, Project } from "./types";
 
 const ENABLED_KEY = "enabled";
+const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
 const RULES_KEY = "rules"; // legacy compatibility
 
 function useProjectRules() {
@@ -77,19 +78,23 @@ function useGlobalEnabled() {
   const [enabled, setEnabled] = React.useState<boolean>(true);
 
   React.useEffect(() => {
-    chrome.storage.sync.get(ENABLED_KEY).then(({ [ENABLED_KEY]: value }) => {
-      setEnabled(typeof value === "boolean" ? value : true);
+    chrome.storage.sync.get([ENABLED_KEY, GLOBAL_ENABLED_KEY]).then((obj) => {
+      const legacy = obj[ENABLED_KEY];
+      const global = obj[GLOBAL_ENABLED_KEY];
+      setEnabled(typeof global === "boolean" ? global : (typeof legacy === "boolean" ? legacy : true));
     });
 
     const onChanged = (
       changes: { [key: string]: chrome.storage.StorageChange },
       area: string
     ) => {
-      if (area === "sync" && changes[ENABLED_KEY]) {
+      if (area !== "sync") return;
+      if (changes[GLOBAL_ENABLED_KEY]) {
+        const next = changes[GLOBAL_ENABLED_KEY].newValue;
+        if (typeof next === "boolean") setEnabled(next);
+      } else if (changes[ENABLED_KEY]) {
         const next = changes[ENABLED_KEY].newValue;
-        if (typeof next === "boolean") {
-          setEnabled(next);
-        }
+        if (typeof next === "boolean") setEnabled(next);
       }
     };
 
@@ -99,7 +104,7 @@ function useGlobalEnabled() {
 
   const update = (next: boolean) => {
     setEnabled(next);
-    chrome.storage.sync.set({ [ENABLED_KEY]: next });
+    chrome.storage.sync.set({ [ENABLED_KEY]: next, [GLOBAL_ENABLED_KEY]: next });
   };
 
   return { enabled, update };
@@ -254,6 +259,22 @@ function Dashboard() {
       <Navbar bg="light" variant="light" className="border-bottom">
         <Container className="d-flex align-items-center">
           <Navbar.Brand className="me-auto">Throttlr</Navbar.Brand>
+          <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-2">
+              <span className="text-muted">Global:</span>
+              <Badge bg={enabled ? "success" : "secondary"}>
+                {enabled ? "Enabled" : "Disabled"}
+              </Badge>
+              <BsForm.Check
+                type="switch"
+                id="global-enabled-toggle"
+                checked={enabled}
+                onChange={(e) => update(e.target.checked)}
+                title="Toggle global enable"
+              />
+            </div>
+            <div style={{ width: 1, height: 20, background: "#e5e5e5" }} />
+          </div>
           <div className="d-flex align-items-center gap-2">
             <span className="text-muted">Project:</span>
             <BsForm.Select
@@ -339,26 +360,6 @@ function Dashboard() {
 
       <Container className="py-4">
         <Stack gap={4}>
-          <Card>
-            <Card.Body>
-            <Stack gap={3}>
-              <div>
-                <Card.Title as="h1" className="h4 mb-1">Throttlr rules</Card.Title>
-                <Card.Subtitle className="text-muted">
-                  Create and manage artificial latency for matching endpoints.
-                </Card.Subtitle>
-              </div>
-
-              <Form.Check
-                type="switch"
-                id="dashboard-enabled-toggle"
-                label="Enable throttling globally"
-                checked={enabled}
-                onChange={(event) => update(event.target.checked)}
-              />
-            </Stack>
-          </Card.Body>
-        </Card>
 
         { /* Collapse by default unless the selected project has no rules. */ }
         { /* Controlled so it reacts when switching projects. */ }
