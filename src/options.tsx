@@ -223,6 +223,21 @@ function Dashboard() {
             <Badge bg={currentEnabled ? "success" : "secondary"}>
               {currentEnabled ? "Enabled" : "Disabled"}
             </Badge>
+            <BsForm.Check
+              type="switch"
+              id="project-enabled-toggle"
+              checked={currentEnabled}
+              onChange={async (e) => {
+                const next = e.target.checked;
+                if (!currentId) return;
+                const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
+                const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
+                const merged = list.map((p) => (p.id === currentId ? { ...p, enabled: next } : p));
+                await chrome.storage.sync.set({ projects: merged });
+              }}
+              title="Toggle project enable"
+              disabled={!currentId}
+            />
             <Button size="sm" variant="outline-primary" onClick={openAdd}>Add project</Button>
           </div>
         </Container>

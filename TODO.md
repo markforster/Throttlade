@@ -51,6 +51,7 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [x] Project selector (Bootstrap `Form.Select`) bound to `currentProjectId`
   - [x] “Add project” button (opens modal)
   - [x] Project enable/disable indicator (read-only Badge)
+  - [x] Per‑project enable toggle (switch) that updates selected project's `enabled`
 - [ ] “Add project” modal (React Bootstrap `Modal`):
   - [x] Fields: name (required)
   - [x] On save: create `{ id, name, enabled: true, rules: [] }`, set as `currentProjectId`
