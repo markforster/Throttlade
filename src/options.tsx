@@ -363,6 +363,7 @@ function Dashboard() {
   };
 
   const remove = (id: string) => save(rules.filter((r) => r.id !== id));
+  const [pendingDelete, setPendingDelete] = React.useState<Rule | null>(null);
 
   const [showAddRule, setShowAddRule] = React.useState<boolean>(false);
   const openAddRule = () => { setEditingRule(null); setIsRegex(false); setShowAddRule(true); };
@@ -544,6 +545,28 @@ function Dashboard() {
         </Modal.Footer>
       </Modal>
 
+      {/* Confirm Delete Rule Modal */}
+      <Modal show={!!pendingDelete} onHide={() => setPendingDelete(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete rule</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="mb-2">Are you sure you want to delete this rule?</div>
+          {pendingDelete && (
+            <div className="small text-muted">
+              <div><strong>Pattern:</strong> {pendingDelete.pattern}</div>
+              <div><strong>Method:</strong> {pendingDelete.method || 'Any'}</div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setPendingDelete(null)}>Cancel</Button>
+          <Button variant="danger" onClick={() => { if (pendingDelete) remove(pendingDelete.id); setPendingDelete(null); }}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <Container className="py-4">
         <Stack gap={4}>
 
@@ -651,7 +674,7 @@ function Dashboard() {
                               <Pencil className="me-1" size={16} />
                               <span className="visually-hidden">Edit</span>
                             </Button>
-                            <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
+                            <Button variant="outline-danger" onClick={() => setPendingDelete(r)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
                               <span className="visually-hidden">Delete</span>
                             </Button>
