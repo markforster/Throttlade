@@ -16,6 +16,15 @@ chrome.storage.onChanged.addListener((c) => {
   if (c.enabled) enabled = typeof c.enabled.newValue === "boolean" ? c.enabled.newValue : true;
 });
 
+// Prefer effective state broadcast from the bridge when available
+window.addEventListener("message", (ev: MessageEvent) => {
+  const d = ev.data as any;
+  if (d && d.__THROTTLR__ && d.type === "STATE") {
+    if (Array.isArray(d.rules)) rules = d.rules as Rule[];
+    if (typeof d.enabled === "boolean") enabled = d.enabled as boolean;
+  }
+});
+
 function matches(url: string, method: string) {
   if (!enabled) return undefined;
   return rules.find(r => {

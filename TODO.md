@@ -36,7 +36,10 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - `effectiveEnabled = globalEnabled && project.enabled`
   - Send only the selected project’s rules and `effectiveEnabled`
 - [x] Update `content-bridge.ts` message payload to include `projectId` (optional)
-- [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
+ - [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
+   - [x] content.ts listens to STATE and prefers broadcasted rules/enabled over legacy storage
+   - [x] inpage.ts already consumes STATE rules/enabled
+   - [ ] Later: remove direct storage reads once all producers/consumers are project-aware
 - [x] Reverify listeners for storage changes; recompute and rebroadcast on `globalEnabled`, `projects`, `currentProjectId`, and legacy keys.
 - [x] Hook migration into background `onInstalled`/`onStartup` before reinjecting scripts.
   - [x] Log computed effective state at startup/install (diagnostics only)
@@ -44,6 +47,7 @@ This document breaks the “projects/domains” feature into small, iterative ta
 ## Dashboard UI (Options Page)
 
 - [ ] Add a top navigation bar (React Bootstrap `Navbar`) with:
+  - [x] Read-only current project name
   - [ ] Project selector (Bootstrap `Dropdown` or `Form.Select`) bound to `currentProjectId`
   - [ ] “Add project” button (opens modal)
   - [ ] Project enable/disable indicator for the currently selected project

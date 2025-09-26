@@ -13,6 +13,7 @@ import {
   Row,
   Stack,
   Table,
+  Navbar,
 } from "react-bootstrap";
 
 import type { Rule } from "./types";
@@ -81,6 +82,33 @@ function Dashboard() {
   const { enabled, update } = useGlobalEnabled();
   const [isRegex, setIsRegex] = React.useState(false);
 
+  function useCurrentProjectName() {
+    const [name, setName] = React.useState<string>("Default");
+    React.useEffect(() => {
+      const compute = async () => {
+        const { projects, currentProjectId } = await chrome.storage.sync.get([
+          "projects",
+          "currentProjectId",
+        ] as any);
+        const list = Array.isArray(projects) ? projects as any[] : [];
+        const current = typeof currentProjectId === "string"
+          ? list.find(p => p && p.id === currentProjectId)
+          : list[0];
+        setName(current?.name || (list.length ? "(Unnamed project)" : "Default"));
+      };
+      compute();
+      const onChanged = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
+        if (area !== "sync") return;
+        if (changes.projects || changes.currentProjectId) compute();
+      };
+      chrome.storage.onChanged.addListener(onChanged);
+      return () => chrome.storage.onChanged.removeListener(onChanged);
+    }, []);
+    return name;
+  }
+
+  const projectName = useCurrentProjectName();
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -106,10 +134,18 @@ function Dashboard() {
   const remove = (id: string) => save(rules.filter((r) => r.id !== id));
 
   return (
-    <Container className="py-4">
-      <Stack gap={4}>
-        <Card>
-          <Card.Body>
+    <>
+      <Navbar bg="light" variant="light" className="border-bottom">
+        <Container>
+          <Navbar.Brand>Throttlr</Navbar.Brand>
+          <Navbar.Text className="ms-auto">Project: {projectName}</Navbar.Text>
+        </Container>
+      </Navbar>
+
+      <Container className="py-4">
+        <Stack gap={4}>
+          <Card>
+            <Card.Body>
             <Stack gap={3}>
               <div>
                 <Card.Title as="h1" className="h4 mb-1">Throttlr rules</Card.Title>
@@ -265,7 +301,8 @@ function Dashboard() {
           </Card.Body>
         </Card>
       </Stack>
-    </Container>
+      </Container>
+    </>
   );
 }
 
