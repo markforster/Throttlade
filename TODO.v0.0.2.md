@@ -34,3 +34,5 @@ This snapshot captures the UX work completed in this pass.
 - All changes preserve existing storage and throttling behavior.
 - Future ideas (not included here): persist filters per project; custom project dropdown with inline status/toggle.
 
+## Known Issues (at this snapshot)
+- Project dropdown: toggling a project's enable switch inside the menu may close the dropdown; expected to stay open. Row selection also requires clicking directly on text rather than the whole row.
