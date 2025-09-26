@@ -261,6 +261,66 @@ function Dashboard() {
     setShowDelete(false);
   };
 
+  // Toggle selected or specific project's enabled
+  const setProjectEnabled = async (id: string, next: boolean) => {
+    const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
+    const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
+    const merged = list.map((p) => (p.id === id ? { ...p, enabled: next } : p));
+    await chrome.storage.sync.set({ projects: merged });
+  };
+
+  // Custom project dropdown with inline toggle and per-item toggles
+  function ProjectDropdown() {
+    const current = projects.find(p => p.id === currentId);
+    const displayName = current?.name || (projects[0]?.name ?? "(No projects)");
+    const selectedEnabled = current?.enabled ?? true;
+    const [open, setOpen] = React.useState(false);
+    return (
+      <Dropdown align="start" autoClose={false} show={open} onToggle={(isOpen) => setOpen(!!isOpen)}>
+        <Dropdown.Toggle variant="outline-secondary" size="sm" aria-label="Select project" title="Select project">
+          <span className="me-2">{displayName}</span>
+          <BsForm.Check
+            type="switch"
+            id="selected-project-toggle"
+            checked={selectedEnabled}
+            onClick={(e: any) => e.stopPropagation()}
+            onChange={(e: any) => { e.stopPropagation(); if (currentId) setProjectEnabled(currentId, e.target.checked); }}
+            title="Toggle selected project"
+            aria-label="Toggle selected project"
+            className="d-inline align-middle"
+          />
+        </Dropdown.Toggle>
+        <Dropdown.Menu style={{ minWidth: 280 }}>
+          {projects.length === 0 ? (
+            <Dropdown.ItemText className="text-muted">No projects</Dropdown.ItemText>
+          ) : (
+            projects.map((p) => (
+              <div key={p.id} className="d-flex align-items-center justify-content-between px-3 py-2">
+                <Dropdown.Item
+                  as="button"
+                  className="p-0 text-start flex-grow-1 text-decoration-none"
+                  onClick={() => { select(p.id); setOpen(false); }}
+                  aria-label={`Select project ${p.name}`}
+                >
+                  {p.name || "(Unnamed)"}
+                </Dropdown.Item>
+                <BsForm.Check
+                  type="switch"
+                  id={`toggle-${p.id}`}
+                  checked={!!p.enabled}
+                  onClick={(e: any) => e.stopPropagation()}
+                  onChange={(e: any) => { e.stopPropagation(); setProjectEnabled(p.id, e.target.checked); }}
+                  title={`Toggle ${p.name || "project"}`}
+                  aria-label={`Toggle ${p.name || "project"}`}
+                />
+              </div>
+            ))
+          )}
+        </Dropdown.Menu>
+      </Dropdown>
+    );
+  }
+
   const [editingRule, setEditingRule] = React.useState<Rule | null>(null);
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -274,7 +334,8 @@ function Dashboard() {
     const regexMode = mode === "regex";
     if (!pattern) return;
 
-    if (editingRule) {
+    if (editingRule)
+    {
       const updated: Rule = {
         ...editingRule,
         pattern,
@@ -284,7 +345,8 @@ function Dashboard() {
       };
       const nextRules = rules.map((r) => (r.id === editingRule.id ? updated : r));
       save(nextRules);
-    } else {
+    } else
+    {
       const next: Rule = {
         id: crypto.randomUUID(),
         pattern,
@@ -351,50 +413,7 @@ function Dashboard() {
           </div>
 
           <div className="d-flex align-items-center gap-2">
-            {/* <span className="text-muted">Status:</span> */}
-            {/* <Badge bg={currentEnabled ? "success" : "secondary"}>
-              {currentEnabled ? "Enabled" : "Disabled"}
-            </Badge> */}
-            <BsForm.Check
-              type="switch"
-              id="project-enabled-toggle"
-              checked={currentEnabled}
-              onChange={async (e) => {
-                const next = e.target.checked;
-                if (!currentId) return;
-                const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
-                const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
-                const merged = list.map((p) => (p.id === currentId ? { ...p, enabled: next } : p));
-                await chrome.storage.sync.set({ projects: merged });
-              }}
-              title="Toggle project enable"
-              aria-label="Toggle project enable"
-              disabled={!currentId}
-            />
-            {/* <span className="text-muted">Project:</span> */}
-            <BsForm.Select
-              size="sm"
-              className={`w-auto ${currentEnabled ? 'border-success' : 'border-secondary'}`}
-              value={currentId}
-              onChange={(e) => select(e.target.value)}
-              disabled={projects.length === 0}
-              title="Select project"
-              aria-label="Select project"
-            >
-              {projects.length === 0 ? (
-                <option value="">No projects</option>
-              ) : (
-                projects.map((p) => {
-                  const prefix = p.enabled ? '🟢 ' : '🔴 ';
-                  return (
-                    <option key={p.id} value={p.id}>
-                      {prefix}{p.name || "(Unnamed)"}
-                    </option>
-                  );
-                })
-              )}
-            </BsForm.Select>
-
+            <ProjectDropdown />
             <Button
               size="sm"
               variant="outline-danger"
@@ -588,11 +607,11 @@ function Dashboard() {
                         </div>
                       </Dropdown.Menu>
                     </Dropdown>
-                  <Button variant="primary" size="sm" onClick={openAddRule} title="Add rule" aria-label="Add rule">
-                    <Plus className="me-1" size={16} />
-                    Add rule
-                  </Button>
-                </div>
+                    <Button variant="primary" size="sm" onClick={openAddRule} title="Add rule" aria-label="Add rule">
+                      <Plus className="me-1" size={16} />
+                      Add rule
+                    </Button>
+                  </div>
                 </div>
 
                 <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">

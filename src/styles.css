@@ -26,3 +26,22 @@
 .rules-table td:not(:first-child) {
   white-space: nowrap;
 }
+
+/* Dropdown: suppress ALL hover/active color changes (bg + text) */
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu .dropdown-item:active,
+.dropdown-menu .dropdown-item.active {
+  background-color: transparent !important;
+  color: var(--bs-dropdown-link-color) !important;
+}
+
+/* Keep outline-secondary dropdown toggle from inverting colors on hover/focus/active */
+.btn-outline-secondary.dropdown-toggle:hover,
+.btn-outline-secondary.dropdown-toggle:focus,
+.btn-outline-secondary.dropdown-toggle:active,
+.show > .btn-outline-secondary.dropdown-toggle {
+  background-color: transparent !important;
+  color: var(--bs-secondary) !important;
+  border-color: var(--bs-secondary) !important;
+}

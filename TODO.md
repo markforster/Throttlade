@@ -42,6 +42,19 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
     - [x] Delete project button
   - [x] Preserve current behaviors and storage updates
 
+- [x] Make project sub‑navbar sticky under main navbar
+- [x] Project selector compact with status indicator (🟢/🔴) and status‑colored border
+- [x] Replace Add Rule accordion with modal (shared add/edit form)
+- [x] Rules method filter dropdown with multi‑select checkboxes (Clear / Select all)
+- [x] Apply method filtering to rules table with informative empty states
+- [x] Rules table columns: URL/Path (flex), Method, Match Mode, Delay, Actions
+- [x] Method badges: color‑coded + method‑specific icons (GET/POST/PUT/PATCH/DELETE)
+- [x] DELETE method badge uses FileX icon to avoid confusion with action delete
+- [x] PATCH method badge uses PatchCheck icon (not Pencil)
+- [x] Match Mode badges outlined with icons (Wildcard=Asterisk, Regex=BracesAsterisk)
+- [x] Rules actions icon‑only (Edit/Delete) with visually‑hidden labels
+- [x] Help tooltip icon for rules ordering next to “Current rules”
+
 ## QA & Validation
 
 - [ ] Fresh install: create project, add rules, verify throttling
@@ -52,7 +65,89 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 - [ ] Project switching updates effective rules immediately on open pages
 - [ ] Add/delete project flows; selection behaves as expected
 - [ ] Verify content/inpage reactivity: storage updates propagate and STATE messages reflect changes
+- [ ] Rules UI: Add via modal works; Edit saves updates in place
+- [ ] Filters: selecting methods filters table; Clear/Select all work; empty states render correctly
 
 ## Rollout Steps
 
 - [ ] Final polish, docs, and screenshots
+
+## Bugs
+
+- [ ] Project dropdown closes when toggling a project's enable switch in the menu. Expected: menu stays open on toggle; only selecting a project name should close it. Current attempt with `autoClose={false}` and controlled `show` did not resolve; investigate event handling in React Bootstrap Dropdown.
+- [ ] Project dropdown row selection: user must click exactly on the text to select a project. Expected: clicking anywhere on the row (except the toggle) selects the project. Make the entire row clickable while keeping the toggle interactive without closing the dropdown.
+
+## Advanced Table Features (Ambitious)
+
+These features add richer control to the rules list. They should be additive and must not change the underlying storage order or existing behavior unless explicitly enabled. All features should cooperate with current method filters and per‑project selection.
+
+### Free‑Text Search Filtering
+
+Provide a search box in place of the “Current rules” title (with a clear X button) that filters rules as the user types. Matching is simple “contains” on pattern (and optionally method/mode), case‑insensitive. Clearing restores full list.
+
+- [ ] Replace title area with an input group (React Bootstrap `InputGroup` + `Form.Control`) and a clear button (X)
+- [ ] Add `searchQuery` state and debounce updates (e.g., 150–250ms) for performance
+- [ ] Implement case‑insensitive “contains” match on pattern (and optionally include method/match mode text)
+- [ ] Combine with existing method filters (AND logic): first filter by methods, then by search text
+- [ ] Preserve empty states (“no rules”, “no matches”) with search context
+- [ ] A11y: add `aria-label`/placeholder; Esc clears or blurs input
+
+### Grouping (by Method or Match Mode)
+
+Add an optional “Group by” control next to the filter icon to group rules in the table. When grouping is off, render a single flat list (current behavior). When grouping is on, partition the filtered rules into labeled groups by Method or by Match Mode. Filters still apply; groups only affect presentation. Grouping must not mutate stored order.
+
+- [ ] Add “Group by” control (Dropdown with: None, Method, Match Mode)
+- [ ] Derive grouped data structure from already‑filtered rules: `{ heading, items[] }[]`
+- [ ] Render groups with small headers (sticky within card optional) and tables/rows per group (or a single table with grouped sections)
+- [ ] Keep rule action buttons functional; group headers show item counts
+- [ ] Ensure grouping works with search and method filters simultaneously
+- [ ] A11y: mark group headers with appropriate semantics
+
+### Sorting (View‑Only)
+
+Allow users to change the display sort without changing the underlying storage order. Primary order remains the stored rule order; alternate view sorts include alphabetical (by pattern) and by method. Implement using a derived array or stable keys/indices; never write sorted order back to storage unless we later add explicit reordering.
+
+- [ ] Add Sort control (Dropdown with: Rule Order [default], Alphabetical, Method)
+- [ ] Apply sorting after filtering (and grouping if enabled) to the rendered collection only
+- [ ] Ensure stable rendering by keying rows by `rule.id`
+- [ ] Confirm that no storage mutations occur when changing sort
+- [ ] Document precedence (Filter → Group → Sort render)
+
+## Rule Management Enhancements (Ambitious)
+
+These features refine how users manage rules themselves (order, safety, per‑rule activation). They should integrate with existing project storage and broadcasting without disrupting current behaviors unless explicitly invoked.
+
+### Reordering Rules (Iteration 1)
+
+Let users change rule order (which determines match precedence). Start with a simple modal UI rather than inline drag‑and‑drop; consider DnD in a later iteration.
+
+- [ ] Add a “Manage order” button near the rules header
+- [ ] Open a modal listing current rules (pattern + method) in order
+- [ ] Reorder mechanics (v1):
+  - [ ] Provide Up/Down controls to move a selected rule
+  - [ ] Optional: adopt a DnD library for smoother UX in a later pass
+- [ ] Persist order by writing the reordered array back to the selected project’s `rules`
+- [ ] Do not mutate rule contents (ids unchanged); only array order changes
+- [ ] Close modal on save; bridge rebroadcasts; runtime throttling reflects new order
+- [ ] A11y: keyboard support for moving items; focus management in modal
+
+### Confirm Delete Rule
+
+Prevent accidental deletions by confirming intent before removing a rule.
+
+- [ ] Replace direct delete with a confirm modal
+- [ ] Modal shows rule summary (pattern + method)
+- [ ] Buttons: Cancel (default) and Delete (danger)
+- [ ] Keyboard: Esc cancels; Enter confirms when Delete focused
+- [ ] After confirm, remove rule and update storage; table refreshes
+
+### Enable / Disable Per Rule
+
+Allow turning individual rules on/off without deleting them. Disabled rules should be ignored by matching logic.
+
+- [ ] Extend `Rule` type with `enabled?: boolean` (default true)
+- [ ] Migration: on load, treat missing `enabled` as true (no storage rewrite required initially)
+- [ ] UI: add a toggle column after Actions to enable/disable each rule
+- [ ] Visual cue for disabled rules (e.g., muted row or badge)
+- [ ] Matching logic: update `inpage.ts` and `content.ts` matchers to skip disabled rules
+- [ ] Bridge payload remains the same list; rules with `enabled=false` are still sent but ignored by matchers
