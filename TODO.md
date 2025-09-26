@@ -36,10 +36,11 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - `effectiveEnabled = globalEnabled && project.enabled`
   - Send only the selected project’s rules and `effectiveEnabled`
 - [x] Update `content-bridge.ts` message payload to include `projectId` (optional)
- - [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
-   - [x] content.ts listens to STATE and prefers broadcasted rules/enabled over legacy storage
-   - [x] inpage.ts already consumes STATE rules/enabled
-   - [ ] Later: remove direct storage reads once all producers/consumers are project-aware
+- [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
+  - [x] content.ts listens to STATE and prefers broadcasted rules/enabled over legacy storage
+  - [x] inpage.ts already consumes STATE rules/enabled
+  - [ ] Later: remove direct storage reads once all producers/consumers are project-aware
+- [x] Popup writes both `enabled` (legacy) and `globalEnabled` (schema) so effective state reflects global toggle
 - [x] Reverify listeners for storage changes; recompute and rebroadcast on `globalEnabled`, `projects`, `currentProjectId`, and legacy keys.
 - [x] Hook migration into background `onInstalled`/`onStartup` before reinjecting scripts.
   - [x] Log computed effective state at startup/install (diagnostics only)

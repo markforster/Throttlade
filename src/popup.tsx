@@ -4,7 +4,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import { Card, Button, Form, Stack } from "react-bootstrap";
 
-const ENABLED_KEY = "enabled";
+const ENABLED_KEY = "enabled"; // legacy/global toggle key used by older code
+const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema key used by project model
 
 function useGlobalEnabled() {
   const [enabled, setEnabled] = React.useState<boolean>(true);
@@ -13,20 +14,26 @@ function useGlobalEnabled() {
     let mounted = true;
 
     chrome.storage.sync
-      .get(ENABLED_KEY)
-      .then(({ [ENABLED_KEY]: value }) => {
+      .get([ENABLED_KEY, GLOBAL_ENABLED_KEY])
+      .then(({ [ENABLED_KEY]: legacy, [GLOBAL_ENABLED_KEY]: global }) => {
         if (!mounted) return;
-        setEnabled(typeof value === "boolean" ? value : true);
+        // Prefer new schema key when present, otherwise fall back to legacy
+        const val = (typeof global === "boolean") ? global : (typeof legacy === "boolean" ? legacy : true);
+        setEnabled(val);
       });
 
     const onChanged = (
       changes: { [key: string]: chrome.storage.StorageChange },
       area: string
     ) => {
-      if (area === "sync" && changes[ENABLED_KEY]) {
-        const next = changes[ENABLED_KEY].newValue;
-        if (typeof next === "boolean") {
-          setEnabled(next);
+      if (area === "sync") {
+        if (changes[GLOBAL_ENABLED_KEY]) {
+          const next = changes[GLOBAL_ENABLED_KEY].newValue;
+          if (typeof next === "boolean") setEnabled(next);
+        } else if (changes[ENABLED_KEY]) {
+          // If only legacy key changed, mirror it
+          const next = changes[ENABLED_KEY].newValue;
+          if (typeof next === "boolean") setEnabled(next);
         }
       }
     };
@@ -40,7 +47,8 @@ function useGlobalEnabled() {
 
   const update = (next: boolean) => {
     setEnabled(next);
-    chrome.storage.sync.set({ [ENABLED_KEY]: next });
+    // Write both keys to keep old/new paths in sync
+    chrome.storage.sync.set({ [ENABLED_KEY]: next, [GLOBAL_ENABLED_KEY]: next });
   };
 
   return { enabled, update };
