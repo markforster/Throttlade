@@ -20,6 +20,7 @@ import {
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
+import { Plus, Trash3 } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -310,7 +311,10 @@ function Dashboard() {
               title="Toggle project enable"
               disabled={!currentId}
             />
-            <Button size="sm" variant="outline-primary" onClick={openAdd}>Add project</Button>
+            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project">
+              <Plus className="me-1" size={16} />
+              Add project
+            </Button>
             <Button
               size="sm"
               variant="outline-danger"
@@ -318,6 +322,7 @@ function Dashboard() {
               disabled={!currentId || projects.length <= 1}
               title={projects.length <= 1 ? "Cannot delete the only project" : "Delete selected project"}
             >
+              <Trash3 className="me-1" size={16} />
               Delete
             </Button>
           </div>

@@ -27,8 +27,10 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
   - [x] Make header stick to top (Bootstrap `sticky-top`)
   - [x] No extra padding needed (element stays in document flow)
 - [ ] Introduce icons where helpful
-  - [ ] Add Bootstrap Icons (e.g., `bootstrap-icons` or `react-bootstrap-icons`)
-  - [ ] Replace or augment text buttons with icons (Add project, Delete project, toggles)
+  - [x] Add Bootstrap Icons (`react-bootstrap-icons`)
+  - [x] Replace/augment icons on Navbar buttons (Add project, Delete project)
+  - [ ] Add icons to rules table Delete and Add rule button
+  - [ ] Add icon to regex warning badge
   - [ ] Ensure accessible labels/tooltips remain
 - [ ] Restructure navigation into two tiers
   - [ ] Keep top Navbar for global controls only (brand + global enable)
