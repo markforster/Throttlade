@@ -560,22 +560,27 @@ function Dashboard() {
                       <Dropdown.Menu style={{ minWidth: 240 }}>
                         <div className="px-3 py-2">
                           <div className="text-muted small mb-2">Filter by HTTP method</div>
-                          {METHODS.map((m) => (
-                            <div key={m} className="mb-1">
-                              <BsForm.Check
-                                type="checkbox"
-                                id={`filter-${m}`}
-                                label={m}
-                                checked={selectedMethods.has(m)}
-                                onChange={(e) => {
-                                  const next = new Set(selectedMethods);
-                                  if (e.target.checked) next.add(m); else next.delete(m);
-                                  setSelectedMethods(next);
-                                }}
-                                onClick={(ev) => ev.stopPropagation()}
-                              />
-                            </div>
-                          ))}
+                          {METHODS.map((m) => {
+                            const id = `filter-${m}`;
+                            const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                              const next = new Set(selectedMethods);
+                              if (e.target.checked) next.add(m); else next.delete(m);
+                              setSelectedMethods(next);
+                            };
+                            return (
+                              <div key={m} className="d-flex justify-content-between align-items-center w-100 mb-1" onClick={(e) => e.stopPropagation()}>
+                                <label htmlFor={id} className="form-check-label mb-0">{m}</label>
+                                <input
+                                  id={id}
+                                  type="checkbox"
+                                  className="form-check-input ms-2"
+                                  checked={selectedMethods.has(m)}
+                                  onChange={handleChange}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+                            );
+                          })}
                           <div className="d-flex justify-content-between gap-2 mt-2">
                             <Button size="sm" variant="outline-secondary" onClick={(e) => { e.stopPropagation(); setSelectedMethods(new Set()); }}>Clear</Button>
                             <Button size="sm" variant="outline-primary" onClick={(e) => { e.stopPropagation(); setSelectedMethods(new Set(METHODS)); }}>Select all</Button>
