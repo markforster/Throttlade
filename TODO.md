@@ -48,9 +48,9 @@ This document breaks the “projects/domains” feature into small, iterative ta
 
 - [ ] Add a top navigation bar (React Bootstrap `Navbar`) with:
   - [x] Read-only current project name
-  - [ ] Project selector (Bootstrap `Dropdown` or `Form.Select`) bound to `currentProjectId`
+  - [x] Project selector (Bootstrap `Form.Select`) bound to `currentProjectId`
   - [ ] “Add project” button (opens modal)
-  - [ ] Project enable/disable indicator for the currently selected project
+  - [x] Project enable/disable indicator (read-only Badge)
 - [ ] “Add project” modal (React Bootstrap `Modal`):
   - [ ] Fields: name (required), maybe default domain hint (optional for later)
   - [ ] On save: create `{ id, name, enabled: true, rules: [] }`, set as `currentProjectId`

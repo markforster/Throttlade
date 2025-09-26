@@ -14,9 +14,10 @@ import {
   Stack,
   Table,
   Navbar,
+  Form as BsForm,
 } from "react-bootstrap";
 
-import type { Rule } from "./types";
+import type { Rule, Project } from "./types";
 
 const ENABLED_KEY = "enabled";
 const RULES_KEY = "rules";
@@ -109,6 +110,51 @@ function Dashboard() {
 
   const projectName = useCurrentProjectName();
 
+  function useProjectSelector() {
+    const [projects, setProjects] = React.useState<Project[]>([]);
+    const [currentId, setCurrentId] = React.useState<string>("");
+    const [currentEnabled, setCurrentEnabled] = React.useState<boolean>(true);
+
+    React.useEffect(() => {
+      const read = async () => {
+        const { projects, currentProjectId } = await chrome.storage.sync.get([
+          "projects",
+          "currentProjectId",
+        ] as any);
+        const list: Project[] = Array.isArray(projects) ? (projects as Project[]) : [];
+        setProjects(list);
+        const selected: Project | undefined =
+          typeof currentProjectId === "string"
+            ? list.find((p) => p && p.id === currentProjectId)
+            : list[0];
+        const id: string = selected?.id ?? "";
+        setCurrentId(id);
+        setCurrentEnabled(selected?.enabled ?? true);
+      };
+      read();
+      const onChanged = (changes: { [key: string]: chrome.storage.StorageChange }, area: string) => {
+        if (area !== "sync") return;
+        if (changes.projects || changes.currentProjectId) read();
+      };
+      chrome.storage.onChanged.addListener(onChanged);
+      return () => chrome.storage.onChanged.removeListener(onChanged);
+    }, []);
+
+    const select = (id: string) => {
+      setCurrentId(id);
+      if (id) chrome.storage.sync.set({ currentProjectId: id });
+    };
+
+    React.useEffect(() => {
+      const selected = projects.find((p) => p.id === currentId);
+      setCurrentEnabled(selected?.enabled ?? true);
+    }, [projects, currentId]);
+
+    return { projects, currentId, currentEnabled, select };
+  }
+
+  const { projects, currentId, currentEnabled, select } = useProjectSelector();
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -136,9 +182,29 @@ function Dashboard() {
   return (
     <>
       <Navbar bg="light" variant="light" className="border-bottom">
-        <Container>
-          <Navbar.Brand>Throttlr</Navbar.Brand>
-          <Navbar.Text className="ms-auto">Project: {projectName}</Navbar.Text>
+        <Container className="d-flex align-items-center">
+          <Navbar.Brand className="me-auto">Throttlr</Navbar.Brand>
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted">Project:</span>
+            <BsForm.Select
+              size="sm"
+              style={{ minWidth: 180 }}
+              value={currentId}
+              onChange={(e) => select(e.target.value)}
+              disabled={projects.length === 0}
+            >
+              {projects.length === 0 ? (
+                <option value="">No projects</option>
+              ) : (
+                projects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name || "(Unnamed)"}</option>
+                ))
+              )}
+            </BsForm.Select>
+            <Badge bg={currentEnabled ? "success" : "secondary"}>
+              {currentEnabled ? "Enabled" : "Disabled"}
+            </Badge>
+          </div>
         </Container>
       </Navbar>
 
