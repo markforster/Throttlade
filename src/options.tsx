@@ -16,11 +16,13 @@ import {
   Navbar,
   Form as BsForm,
   Modal,
-  Accordion,
+  OverlayTrigger,
+  Tooltip,
+  Dropdown,
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
-import { Plus, Trash3, ExclamationTriangleFill, Power } from "react-bootstrap-icons";
+import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -193,6 +195,8 @@ function Dashboard() {
   const [showAdd, setShowAdd] = React.useState(false);
   const [newProjectName, setNewProjectName] = React.useState("");
   const [showDelete, setShowDelete] = React.useState(false);
+  const METHODS = React.useMemo(() => ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], []);
+  const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
 
   const openAdd = () => { setNewProjectName(""); setShowAdd(true); };
   const closeAdd = () => setShowAdd(false);
@@ -253,10 +257,14 @@ function Dashboard() {
 
   const remove = (id: string) => save(rules.filter((r) => r.id !== id));
 
-  const [addOpen, setAddOpen] = React.useState<boolean>(false);
-  React.useEffect(() => {
-    setAddOpen(rules.length === 0);
-  }, [projectId, rules.length]);
+  const [showAddRule, setShowAddRule] = React.useState<boolean>(false);
+  const filteredRules = React.useMemo(() => {
+    if (!selectedMethods || selectedMethods.size === 0) return rules;
+    return rules.filter((r) => {
+      const m = (r.method || 'GET').toUpperCase();
+      return selectedMethods.has(m);
+    });
+  }, [rules, selectedMethods]);
 
   return (
     <>
@@ -376,6 +384,86 @@ function Dashboard() {
         </Modal.Footer>
       </Modal>
 
+      {/* Add Rule Modal */}
+      <Modal show={showAddRule} onHide={() => setShowAddRule(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Add rule</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={(e) => { onSubmit(e); setShowAddRule(false); }}>
+            <Row className="gy-3">
+              <Col xs={12}>
+                <Form.Group controlId="modal-rule-pattern">
+                  <Form.Label>Pattern</Form.Label>
+                  <Form.Control
+                    name="pattern"
+                    placeholder="/api/* or ^https://api\\.site\\.com"
+                    required
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={4} xs={12}>
+                <Form.Group controlId="modal-rule-method">
+                  <Form.Label>Method</Form.Label>
+                  <Form.Select name="method" defaultValue="">
+                    <option value="">Any</option>
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              <Col md={4} xs={12}>
+                <Form.Group controlId="modal-rule-delay">
+                  <Form.Label>Delay (ms)</Form.Label>
+                  <Form.Control
+                    name="delayMs"
+                    type="number"
+                    min={0}
+                    step={50}
+                    defaultValue={2000}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={4} xs={12}>
+                <Form.Group controlId="modal-rule-mode">
+                  <Form.Label>Match mode</Form.Label>
+                  <Form.Select
+                    name="mode"
+                    defaultValue="pattern"
+                    onChange={(event) => setIsRegex(event.target.value === "regex")}
+                  >
+                    <option value="pattern">Wildcard</option>
+                    <option value="regex">Regex</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              {isRegex ? (
+                <Col xs={12}>
+                  <Badge bg="warning" text="dark">
+                    <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
+                    Regex mode: ensure the pattern is a valid JavaScript regular expression.
+                  </Badge>
+                </Col>
+              ) : null}
+            </Row>
+            <div className="d-flex justify-content-end gap-2 mt-3">
+              <Button variant="secondary" type="button" onClick={() => setShowAddRule(false)}>Cancel</Button>
+              <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
+                <Plus className="me-1" size={16} />
+                Add rule
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
       <Modal show={showDelete} onHide={closeDelete} centered>
         <Modal.Header closeButton>
           <Modal.Title>Delete project</Modal.Title>
@@ -397,101 +485,62 @@ function Dashboard() {
           <Card>
             <Card.Body>
               <Stack gap={3}>
-                <div>
-                  <Card.Title className="h5 mb-0">Current rules</Card.Title>
-                  <Card.Text className="text-muted mb-0">
-                    Rules are evaluated top-down. New rules appear first.
-                  </Card.Text>
+                <div className="d-flex align-items-center justify-content-between">
+                  <Card.Title className="h5 mb-0 d-flex align-items-center gap-2">
+                    <OverlayTrigger
+                      placement="right"
+                      overlay={
+                        <Tooltip id="rules-order-help">Rules are evaluated top-down. New rules appear first.</Tooltip>
+                      }
+                    >
+                      <span role="img" aria-label="Rules ordering help" className="text-muted" style={{ cursor: 'help' }}>
+                        <QuestionCircle size={16} />
+                      </span>
+                    </OverlayTrigger>
+                    Current rules
+                  </Card.Title>
+                  <div className="d-flex align-items-center gap-2">
+                    <Dropdown align="end" autoClose="outside">
+                      <Dropdown.Toggle
+                        variant={selectedMethods.size ? "primary" : "outline-secondary"}
+                        size="sm"
+                        aria-label="Filter by method"
+                        title="Filter by method"
+                      >
+                        <FunnelFill size={16} />
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu style={{ minWidth: 240 }}>
+                        <div className="px-3 py-2">
+                          <div className="text-muted small mb-2">Filter by HTTP method</div>
+                          {METHODS.map((m) => (
+                            <div key={m} className="mb-1">
+                              <BsForm.Check
+                                type="checkbox"
+                                id={`filter-${m}`}
+                                label={m}
+                                checked={selectedMethods.has(m)}
+                                onChange={(e) => {
+                                  const next = new Set(selectedMethods);
+                                  if (e.target.checked) next.add(m); else next.delete(m);
+                                  setSelectedMethods(next);
+                                }}
+                                onClick={(ev) => ev.stopPropagation()}
+                              />
+                            </div>
+                          ))}
+                          <div className="d-flex justify-content-between gap-2 mt-2">
+                            <Button size="sm" variant="outline-secondary" onClick={(e) => { e.stopPropagation(); setSelectedMethods(new Set()); }}>Clear</Button>
+                            <Button size="sm" variant="outline-primary" onClick={(e) => { e.stopPropagation(); setSelectedMethods(new Set(METHODS)); }}>Select all</Button>
+                          </div>
+                        </div>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                    <Button variant="primary" size="sm" onClick={() => setShowAddRule(true)} title="Add rule" aria-label="Add rule">
+                    <Plus className="me-1" size={16} />
+                    Add rule
+                    </Button>
+                  </div>
                 </div>
-
-                <Accordion
-                  activeKey={addOpen ? "add" : undefined}
-                  onSelect={() => setAddOpen((v) => !v)}
-                  alwaysOpen={false}
-                >
-                  <Accordion.Item eventKey="add">
-                    <Accordion.Header>Add rule</Accordion.Header>
-                    <Accordion.Body>
-                      <Stack gap={3}>
-                        <Card.Text className="text-muted mb-0">
-                          Wildcard patterns use `*` (e.g. `/api/*`). Switch to regex for advanced matching.
-                        </Card.Text>
-
-                        <Form onSubmit={onSubmit}>
-                          <Row className="gy-3">
-                            <Col xs={12}>
-                              <Form.Group controlId="rule-pattern">
-                                <Form.Label>Pattern</Form.Label>
-                                <Form.Control
-                                  name="pattern"
-                                  placeholder="/api/* or ^https://api\\.site\\.com"
-                                  required
-                                />
-                              </Form.Group>
-                            </Col>
-
-                            <Col md={4} xs={12}>
-                              <Form.Group controlId="rule-method">
-                                <Form.Label>Method</Form.Label>
-                                <Form.Select name="method" defaultValue="">
-                                  <option value="">Any</option>
-                                  <option>GET</option>
-                                  <option>POST</option>
-                                  <option>PUT</option>
-                                  <option>PATCH</option>
-                                  <option>DELETE</option>
-                                </Form.Select>
-                              </Form.Group>
-                            </Col>
-
-                            <Col md={4} xs={12}>
-                              <Form.Group controlId="rule-delay">
-                                <Form.Label>Delay (ms)</Form.Label>
-                                <Form.Control
-                                  name="delayMs"
-                                  type="number"
-                                  min={0}
-                                  step={50}
-                                  defaultValue={2000}
-                                />
-                              </Form.Group>
-                            </Col>
-
-                            <Col md={4} xs={12}>
-                              <Form.Group controlId="rule-mode">
-                                <Form.Label>Match mode</Form.Label>
-                                <Form.Select
-                                  name="mode"
-                                  defaultValue="pattern"
-                                  onChange={(event) => setIsRegex(event.target.value === "regex")}
-                                >
-                                  <option value="pattern">Wildcard</option>
-                                  <option value="regex">Regex</option>
-                                </Form.Select>
-                              </Form.Group>
-                            </Col>
-
-                            {isRegex ? (
-                              <Col xs={12}>
-                                <Badge bg="warning" text="dark">
-                                  <ExclamationTriangleFill className="me-1" size={14} aria-hidden="true" />
-                                  Regex mode: ensure the pattern is a valid JavaScript regular expression.
-                                </Badge>
-                              </Col>
-                            ) : null}
-
-                            <Col xs={12}>
-                              <Button variant="primary" type="submit" title="Add rule" aria-label="Add rule">
-                                <Plus className="me-1" size={16} />
-                                Add rule
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Form>
-                      </Stack>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                </Accordion>
 
                 <Table striped bordered hover responsive size="sm" className="mb-0">
                   <thead>
@@ -502,7 +551,7 @@ function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rules.map((r) => (
+                    {filteredRules.map((r) => (
                       <tr key={r.id}>
                         <td>
                           <Stack gap={1}>
@@ -518,7 +567,7 @@ function Dashboard() {
                           <ButtonGroup size="sm">
                             <Button variant="outline-danger" onClick={() => remove(r.id)} title="Delete rule" aria-label="Delete rule">
                               <Trash3 className="me-1" size={16} />
-                              Delete
+                              {/* Delete */}
                             </Button>
                           </ButtonGroup>
                         </td>
@@ -527,7 +576,14 @@ function Dashboard() {
                     {rules.length === 0 && (
                       <tr>
                         <td colSpan={3} className="text-center text-muted py-4">
-                          No rules yet. Add your first rule above.
+                          No rules yet. Click "Add rule" to create one.
+                        </td>
+                      </tr>
+                    )}
+                    {rules.length > 0 && filteredRules.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="text-center text-muted py-4">
+                          No rules match the selected filters.
                         </td>
                       </tr>
                     )}
