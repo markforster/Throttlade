@@ -1,0 +1,27 @@
+{
+  "name": "throttlr",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "esbuild": "^0.25.10",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "typescript": "^5.9.2"
+  },
+  "scripts": {
+    "dev_old": "node esbuild.config.mjs --watch",
+    "build_old": "node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch",
+    "build": "node esbuild.config.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.12",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.6.0"
+  },
+  "author": "bethehedgehog",
+  "license": "ISC",
+  "description": ""
+}
