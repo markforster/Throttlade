@@ -30,14 +30,14 @@ This document breaks the “projects/domains” feature into small, iterative ta
 
 ## Background + Bridge + Page State Flow
 
-- [ ] Compute and broadcast “effective state” to in‑page script:
+- [x] Compute and broadcast “effective state” to in‑page script:
   - Source: `globalEnabled`, `projects`, `currentProjectId`
   - Effective project: find by `currentProjectId`; if missing, fallback to first project or none
   - `effectiveEnabled = globalEnabled && project.enabled`
   - Send only the selected project’s rules and `effectiveEnabled`
-- [ ] Update `content-bridge.ts` message payload from `{ type: "STATE", rules, enabled }` to include `projectId` for debugging (optional): `{ type: "STATE", rules, enabled, projectId }`
+- [x] Update `content-bridge.ts` message payload to include `projectId` (optional)
 - [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
-- [ ] Reverify listeners for storage changes; recompute and rebroadcast on any of `globalEnabled`, `projects`, `currentProjectId`.
+- [x] Reverify listeners for storage changes; recompute and rebroadcast on `globalEnabled`, `projects`, `currentProjectId`, and legacy keys.
 - [x] Hook migration into background `onInstalled`/`onStartup` before reinjecting scripts.
   - [x] Log computed effective state at startup/install (diagnostics only)
 
@@ -105,6 +105,8 @@ This document breaks the “projects/domains” feature into small, iterative ta
   - [x] Add `getState`/`setState` helpers
   - [x] Add `getEffectiveState()` helper
 - [ ] Update bridge to compute and post effective state
+  - [x] Bridge computes effective state via helper and posts `{ rules, enabled, projectId }`
+  - [x] Fallback to legacy keys if helper fails
 - [ ] Wire content/inpage to new state
 - [ ] Implement dashboard navbar + project CRUD (read‑only display first, then write)
 - [ ] Collapse/expand add rule panel based on rule count
