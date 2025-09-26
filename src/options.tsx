@@ -22,7 +22,7 @@ import {
 } from "react-bootstrap";
 
 import type { Rule, Project } from "./types";
-import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill } from "react-bootstrap-icons";
+import { Plus, Trash3, ExclamationTriangleFill, Power, QuestionCircle, FunnelFill, Asterisk, BracesAsterisk, CodeSlash, Download, Upload, ArrowRepeat, Pencil, FileX } from "react-bootstrap-icons";
 
 const ENABLED_KEY = "enabled";
 const GLOBAL_ENABLED_KEY = "globalEnabled"; // new schema
@@ -121,7 +121,8 @@ function Dashboard() {
   const [isRegex, setIsRegex] = React.useState(false);
   const methodVariant = (method?: string) => {
     const m = (method || "").toUpperCase();
-    switch (m) {
+    switch (m)
+    {
       case "GET": return "success";
       case "POST": return "info";
       case "PUT": return "warning";
@@ -130,6 +131,18 @@ function Dashboard() {
       case "OPTIONS": return "secondary";
       case "HEAD": return "secondary";
       default: return "secondary"; // Any/unknown
+    }
+  };
+  const methodIcon = (method?: string) => {
+    const m = (method || "").toUpperCase();
+    switch (m)
+    {
+      case "GET": return <Download size={14} />;
+      case "POST": return <Upload size={14} />;
+      case "PUT": return <ArrowRepeat size={14} />;
+      case "PATCH": return <Pencil size={14} />;
+      case "DELETE": return <FileX size={14} />;
+      default: return null;
     }
   };
 
@@ -208,7 +221,9 @@ function Dashboard() {
   const [showAdd, setShowAdd] = React.useState(false);
   const [newProjectName, setNewProjectName] = React.useState("");
   const [showDelete, setShowDelete] = React.useState(false);
-  const METHODS = React.useMemo(() => ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], []);
+  // We'll add more methods later (OPTIONS, HEAD) later
+  // const METHODS = React.useMemo(() => ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"], []);
+  const METHODS = React.useMemo(() => ["GET", "POST", "PUT", "PATCH", "DELETE"], []);
   const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
 
   const openAdd = () => { setNewProjectName(""); setShowAdd(true); };
@@ -570,10 +585,20 @@ function Dashboard() {
                       <tr key={r.id}>
                         <td className="align-middle"><span className="fw-semibold">{r.pattern}</span></td>
                         <td className="align-middle">
-                          <Badge bg={methodVariant(r.method)}>{r.method || "Any"}</Badge>
+                          <Badge bg={methodVariant(r.method)}>
+                            {methodIcon(r.method) ? (
+                              <span className="me-1" aria-hidden="true">{methodIcon(r.method)}</span>
+                            ) : null}
+                            {r.method || "Any"}
+                          </Badge>
                         </td>
                         <td className="align-middle">
-                          <Badge bg={r.isRegex ? "info" : "success"}>{r.isRegex ? "Regex" : "Wildcard"}</Badge>
+                          <Badge className={r.isRegex ? "bg-light border border-dark text-dark" : "bg-light border border-secondary text-secondary"}>
+                            <span className="me-1" aria-hidden="true">
+                              {r.isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}
+                            </span>
+                            {r.isRegex ? "Regex" : "Wildcard"}
+                          </Badge>
                         </td>
                         <td className="text-end align-middle">{r.delayMs} ms</td>
                         <td className="text-end align-middle">
