@@ -1,0 +1,12 @@
+/* Disable animations/transitions on Bootstrap toggles (switches) */
+.form-switch .form-check-input,
+.form-check-input {
+  transition: none !important;
+}
+
+/* Also disable focus-visible transition glow changes on toggles */
+.form-check-input:focus {
+  box-shadow: none !important;
+  transition: none !important;
+}
+

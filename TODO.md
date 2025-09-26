@@ -1,0 +1,103 @@
+# Throttlr Projects/Domains — Implementation Plan
+
+This document breaks the “projects/domains” feature into small, iterative tasks. Each task is a checklist item you can pick up independently. No code has been changed yet — this is the plan.
+
+## Goals
+
+- [ ] Add first‑class “projects” (aka domains) to group throttling rules.
+- [ ] Let users select, add, and delete projects in the dashboard.
+- [ ] Persist rules per project; newly added rules are stored under the selected project.
+- [ ] Throttling applies only to the selected project’s rules.
+- [ ] Global enable toggle disables throttling across all projects when off; when on, effective throttling also requires the selected project to be enabled (per‑project enable/disable).
+- [ ] Keep current UX flow (add rule, list rules), but improve structure (collapsed add form if the project already has rules).
+
+## Data Model & Storage
+
+- [ ] Define storage schema (sync):
+  - `globalEnabled: boolean`
+  - `projects: Array<{ id: string, name: string, enabled: boolean, rules: Rule[] }>`
+  - `currentProjectId: string | null`
+- [ ] Migration step: if legacy `rules` exists, create a default project:
+  - Name: "Default"
+  - `enabled: true`
+  - `rules: <legacy rules>`
+  - Set `currentProjectId` to this project’s id
+  - Remove legacy `rules` key after successful migration (keep `enabled` as `globalEnabled` if present)
+- [ ] Utilities: typed read/write helpers for storage keys and migration guard.
+
+## Background + Bridge + Page State Flow
+
+- [ ] Compute and broadcast “effective state” to in‑page script:
+  - Source: `globalEnabled`, `projects`, `currentProjectId`
+  - Effective project: find by `currentProjectId`; if missing, fallback to first project or none
+  - `effectiveEnabled = globalEnabled && project.enabled`
+  - Send only the selected project’s rules and `effectiveEnabled`
+- [ ] Update `content-bridge.ts` message payload from `{ type: "STATE", rules, enabled }` to include `projectId` for debugging (optional): `{ type: "STATE", rules, enabled, projectId }`
+- [ ] Ensure `content.ts`/`inpage.ts` use `effectiveEnabled` and only the selected project’s rules.
+- [ ] Reverify listeners for storage changes; recompute and rebroadcast on any of `globalEnabled`, `projects`, `currentProjectId`.
+
+## Dashboard UI (Options Page)
+
+- [ ] Add a top navigation bar (React Bootstrap `Navbar`) with:
+  - [ ] Project selector (Bootstrap `Dropdown` or `Form.Select`) bound to `currentProjectId`
+  - [ ] “Add project” button (opens modal)
+  - [ ] Project enable/disable indicator for the currently selected project
+- [ ] “Add project” modal (React Bootstrap `Modal`):
+  - [ ] Fields: name (required), maybe default domain hint (optional for later)
+  - [ ] On save: create `{ id, name, enabled: true, rules: [] }`, set as `currentProjectId`
+- [ ] “Delete project” affordance:
+  - [ ] Button in navbar or in a project settings dropdown
+  - [ ] Confirm modal; prevent deletion if it’s the only project (or recreate a default project automatically)
+- [ ] Add rule panel behavior:
+  - [ ] When selected project has rules, render the “Add rule” card collapsed by default (`Accordion`)
+  - [ ] Auto‑expand when the project has no rules
+  - [ ] Ensure submitting a rule always targets the selected project
+- [ ] Rules table filters only the selected project’s rules; show empty state if none.
+- [ ] Per‑project enable switch in the dashboard header; label clarifies global vs project enable relationship.
+
+## Popup UI
+
+- [ ] Keep existing global enable toggle and “Open dashboard” button.
+- [ ] Optional: display current project name for context (read from sync storage).
+- [ ] Optional: quick project switcher (small dropdown) — defer if scope creep.
+
+## Throttling Logic Adjustments
+
+- [ ] Replace current rules source with selected project’s rules in both `content.ts` and `inpage.ts`.
+- [ ] Gate interception by `effectiveEnabled` (global AND project enabled must be true).
+- [ ] Maintain existing fetch/XHR patching semantics.
+
+## Backward Compatibility & Edge Cases
+
+- [ ] Handle extension update path: run migration once; guard with a versioned flag (e.g., `schemaVersion`).
+- [ ] If there are zero projects post‑migration (fresh install), create one default empty project and select it.
+- [ ] If `currentProjectId` points to a missing project, auto‑select the first available and repair storage.
+- [ ] Deleting the selected project should switch selection to another existing project (first in list).
+
+## Optional Future Enhancements (Defer)
+
+- [ ] Project domain affinity: store `origins: string[]` per project and auto‑suggest selection based on active tab origin.
+- [ ] Import/export projects and rules as JSON.
+- [ ] Reorder projects and rule ordering per project (drag‑and‑drop).
+
+## QA & Validation
+
+- [ ] Manual test matrix:
+  - [ ] Fresh install: create project, add rules, verify throttling
+  - [ ] Upgrade with existing rules: migration creates default project, rules preserved
+  - [ ] Global toggle OFF: no throttling regardless of project toggle
+  - [ ] Global toggle ON + project enabled: throttling applies
+  - [ ] Global toggle ON + project disabled: no throttling
+  - [ ] Project switching updates effective rules immediately on open pages
+  - [ ] Add/delete project flows; selection behaves as expected
+- [ ] Verify content/inpage reactivity: storage updates propagate and STATE messages reflect changes.
+
+## Rollout Steps
+
+- [ ] Implement storage schema + migration utilities
+- [ ] Update bridge to compute and post effective state
+- [ ] Wire content/inpage to new state
+- [ ] Implement dashboard navbar + project CRUD (read‑only display first, then write)
+- [ ] Collapse/expand add rule panel based on rule count
+- [ ] Final polish, docs, and screenshots
+

@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles.css";
 import { Card, Button, Form, Stack } from "react-bootstrap";
 
 const ENABLED_KEY = "enabled";
