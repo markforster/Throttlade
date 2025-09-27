@@ -12,16 +12,15 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "build:theme": "sass --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
-    "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
-    "dev:old": "npm run build:theme && node esbuild.config.mjs --watch",
-    "dev": "node esbuild.config.mjs --watch",
-    "dev:watch": " npm run dev && npm run watch:theme",
-    "build:all": "  npm run build:theme && node esbuild.config.mjs",
     "build": "node esbuild.config.mjs",
+    "build:theme": "sass --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
+    "build:all": "npm run build:theme && node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch",
+    "dev:watch": "npm run dev && npm run watch:theme",
     "test": "jest",
     "test:watch": "jest --watch",
-    "serve:demo": "http-server demo -p 5500 -c-1"
+    "serve:demo": "http-server demo -p 5500 -c-1",
+    "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.12",
