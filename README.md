@@ -1,10 +1,10 @@
 # Throttlade
 
-<div>
-  <p>Throttlade is a Chrome extension that lets you slow down (or “throttle”) HTTP requests so you can study loading behaviour, reproduce race conditions, and massage performance budgets. It ships with a friendly options dashboard for managing rules, live request/response monitoring, and log capture so you can keep an eye on what the extension is doing.</p><img src="public/icons/apple-touch-icon.png" width="120" alt="Throttlade" 
+  <div>
+    <img src="public/icons/apple-touch-icon.png" width="120" alt="Throttlade" 
   style="margin-right:30px;float:left;border-radius: 8px;" 
-  />
-</div>
+  /><div><p>Throttlade is a Chrome extension that lets you slow down (or “throttle”) HTTP requests so you can study loading behaviour, reproduce race conditions, and massage performance budgets. It ships with a friendly options dashboard for managing rules, live request/response monitoring, and log capture so you can keep an eye on what the extension is doing.</p></div>
+  </div>
 <div style="clear:both;"></div>
 
 ## Getting Started
