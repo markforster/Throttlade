@@ -1,4 +1,4 @@
-# Throttlr Projects/Domains — Implementation Plan
+# Throttlrade Projects/Domains — Implementation Plan
 
 This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 

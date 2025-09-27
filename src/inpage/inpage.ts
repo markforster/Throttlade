@@ -7,7 +7,7 @@ import { log } from "./../utils/log/logit";
 let rules: Rule[] = [];
 let enabled = true;
 
-log("info", "Throttlr inpage script loaded");
+log("info", "Throttlrade inpage script loaded");
 
 function postBridge(type: "REQ_TRACK_START" | "REQ_TRACK_END", payload: RequestStart | RequestEnd) {
   try {
@@ -85,7 +85,7 @@ function matches(url: string, method: string) {
 // --- fetch patch ---
 const originalFetch = window.fetch.bind(window);
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  log("debug", "Throttlr fetch called", { input, init });
+  log("debug", "Throttlrade fetch called", { input, init });
   const req =
     typeof input === "string"
       ? new Request(input, init)
@@ -95,7 +95,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 
   const rule = matches(req.url, req.method || "GET");
   if (rule) {
-    log("info", "Throttlr fetch intercepted", { url: req.url, method: req.method, delayMs: rule.delayMs });
+    log("info", "Throttlrade fetch intercepted", { url: req.url, method: req.method, delayMs: rule.delayMs });
     const id = Math.random().toString(36).slice(2);
     const startedAt = Date.now();
     postBridge("REQ_TRACK_START", {
@@ -146,8 +146,8 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 // --- XHR patch (re-check rules at send time) ---
 const xhrOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: any[]) {
-  log("debug", "Throttlr XMLHttpRequest intercepted", { method, url });
-  log("debug", "Throttlr rules", rules);
+  log("debug", "Throttlrade XMLHttpRequest intercepted", { method, url });
+  log("debug", "Throttlrade rules", rules);
   // Normalize to absolute URL and uppercase method so matching is consistent
   let absUrl = url;
   try {
@@ -165,17 +165,17 @@ XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: 
 const xhrSend = XMLHttpRequest.prototype.send;
 XMLHttpRequest.prototype.send = async function (...args: any[]) {
   const ctx = (this as any).__throttlrCtx as { method: string; url: string } | undefined;
-  log("debug", "Throttlr XMLHttpRequest send called", { args, ctx });
+  log("debug", "Throttlrade XMLHttpRequest send called", { args, ctx });
 
   // Re-evaluate the rule right before sending (more robust than caching in open)
   let rule: Rule | undefined;
   if (ctx) {
     rule = matches(ctx.url, ctx.method);
   }
-  log("debug", "Throttlr XMLHttpRequest send rules?", { rules, ctx });
-  log("info", "Throttlr XMLHttpRequest rule match", { rule, ctx });
+  log("debug", "Throttlrade XMLHttpRequest send rules?", { rules, ctx });
+  log("info", "Throttlrade XMLHttpRequest rule match", { rule, ctx });
   if (rule) {
-    log("info", "Throttlr XHR delaying", { url: ctx!.url, method: ctx!.method, delayMs: rule.delayMs });
+    log("info", "Throttlrade XHR delaying", { url: ctx!.url, method: ctx!.method, delayMs: rule.delayMs });
     // Old timeout-based delay (commented out during strategy integration):
     // await delay(rule.delayMs);
 
@@ -248,11 +248,11 @@ window.addEventListener("message", (ev: MessageEvent) => {
   if (d && d.__THROTTLR__ && d.type === "STATE") {
     if (Array.isArray(d.rules)) {
       rules = d.rules;
-      log("info", "[Throttlr][inpage] rules updated", rules);
+      log("info", "[Throttlrade][inpage] rules updated", rules);
     }
     if (typeof d.enabled === "boolean") {
       enabled = d.enabled;
-      log("info", "[Throttlr][inpage] enabled updated", { enabled });
+      log("info", "[Throttlrade][inpage] enabled updated", { enabled });
     }
   }
 });

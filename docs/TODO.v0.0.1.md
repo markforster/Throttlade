@@ -1,4 +1,4 @@
-# Throttlr Projects/Domains — v0.0.1 Completed Work
+# Throttlrade Projects/Domains — v0.0.1 Completed Work
 
 Snapshot of all completed items from the projects/domains plan.
 
@@ -63,4 +63,3 @@ Snapshot of all completed items from the projects/domains plan.
 - [x] Wire content/inpage to new state.
 - [x] Implement dashboard navbar + project CRUD.
 - [x] Collapse/expand add rule panel based on rule count.
-
