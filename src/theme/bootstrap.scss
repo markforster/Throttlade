@@ -1,0 +1,63 @@
+@import "bootstrap/scss/functions";
+
+// === Custom theme variables ===
+// $primary: #4f46e5;
+$primary: rgb(48, 121, 102);
+$secondary: rgb(201, 175, 115);
+$tertiary: rgb(234, 164, 49);
+$tertiary_2: rgb228(234, 133, 1);
+// $success: #10b981;
+// $warning: #f59e0b;
+// $danger: #ef4444;
+// $info: #0ea5e9;
+
+// $body-bg: #0f172a;
+$body-bg: #fff;
+$body-color: #e2e8f0;
+$card-bg: rgba(15, 23, 42, 0.85);
+$card-border-color: rgba(148, 163, 184, 0.2);
+
+// Optional: tweak component radii / fonts
+$border-radius: 0.6rem;
+$font-family-base: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/bootstrap";
+
+nav.navbar {
+  background-color: $primary !important;
+}
+
+.navbar-brand {
+  color: #fff;
+}
+
+.nav-item {
+  margin-right: 0.25em;
+}
+
+.card {
+  --bs-card-bg: #fff;
+}
+.form-check-input:checked {
+  background-color: #000 !important;
+  border-color: rgb(48, 121, 102);
+}
+
+.card-title {
+  color: #000 !important;
+}
+
+.icon-link > .bi {
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  fill: #000 !important;
+  transition: 0.2s ease-in-out transform;
+}
+
+.text-muted {
+  color: #000 !important;
+}

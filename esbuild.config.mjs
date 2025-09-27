@@ -1,10 +1,11 @@
 import { context } from "esbuild";
-import { cpSync, mkdirSync, existsSync } from "node:fs";
+import { cpSync, mkdirSync, existsSync, watch } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outdir = resolve(__dirname, "dist");
+const extraWatchTargets = [resolve(__dirname, "src/theme/bootstrap.css")];
 
 function safeCopy(src, dest, opts = {}) {
   if (existsSync(src))
@@ -23,6 +24,73 @@ function copyStatic() {
     resolve(__dirname, "src/options.html"),
     resolve(outdir, "options.html")
   );
+}
+
+function setupExtraWatchers(ctx, files) {
+  const watchers = new Map();
+  let rebuilding = false;
+  let queued = false;
+
+  const triggerRebuild = () => {
+    if (rebuilding) {
+      queued = true;
+      return;
+    }
+    rebuilding = true;
+    ctx
+      .rebuild()
+      .catch((error) => {
+        console.error("esbuild rebuild failed after extra watch change", error);
+      })
+      .finally(() => {
+        rebuilding = false;
+        if (queued) {
+          queued = false;
+          triggerRebuild();
+        }
+      });
+  };
+
+  const attachWatcher = (file) => {
+    try {
+      const watcher = watch(file, { persistent: true }, (eventType) => {
+        if (eventType === "rename") {
+          const active = watchers.get(file);
+          if (active) {
+            active.close();
+            watchers.delete(file);
+          }
+          setTimeout(() => attachWatcher(file), 100);
+        }
+        triggerRebuild();
+      });
+      watcher.on("error", (error) => {
+        console.error(`extra watch error for ${file}`, error);
+      });
+      watchers.set(file, watcher);
+    } catch (error) {
+      console.error(`failed to watch ${file}`, error);
+    }
+  };
+
+  files.forEach((file) => {
+    if (!existsSync(file)) {
+      console.warn(`extra watch target not found: ${file}`);
+      return;
+    }
+    attachWatcher(file);
+  });
+
+  return () => {
+    for (const watcher of watchers.values()) {
+      try {
+        watcher.close();
+      } catch (error) {
+        console.error("error closing extra watcher", error);
+      }
+    }
+    watchers.clear();
+  };
 }
 
 /** @type {Record<string, import('esbuild').Loader>} */
@@ -63,6 +131,18 @@ const isWatch = process.argv.includes("--watch");
   });
   if (isWatch) {
     console.log("esbuild watching…");
+    const disposeExtraWatchers = setupExtraWatchers(ctx, extraWatchTargets);
+    const shutdown = () => {
+      disposeExtraWatchers();
+      ctx.dispose().catch((error) => {
+        console.error("error disposing esbuild context", error);
+      });
+    };
+    process.once("SIGINT", () => {
+      shutdown();
+      process.exit(0);
+    });
+    process.once("SIGTERM", shutdown);
     await ctx.watch();
   } else {
     await ctx.rebuild();

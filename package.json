@@ -12,9 +12,12 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "dev_old": "node esbuild.config.mjs --watch",
-    "build_old": "node esbuild.config.mjs",
+    "build:theme": "sass --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
+    "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
+    "dev:old": "npm run build:theme && node esbuild.config.mjs --watch",
     "dev": "node esbuild.config.mjs --watch",
+    "dev:watch": " npm run dev && npm run watch:theme",
+    "build:all": "  npm run build:theme && node esbuild.config.mjs",
     "build": "node esbuild.config.mjs",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -31,7 +34,8 @@
     "jest-environment-jsdom": "^30.1.2",
     "ts-jest": "^29.4.4",
     "typescript": "^5.6.0",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "sass": "^1.79.4"
   },
   "author": "bethehedgehog",
   "license": "ISC",

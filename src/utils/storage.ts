@@ -1,4 +1,4 @@
-import type { AppState, Project, Rule } from "./types";
+import type { AppState, Project, Rule } from "../types";
 
 const SCHEMA_VERSION = 1;
 

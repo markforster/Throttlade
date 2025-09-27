@@ -88,7 +88,11 @@ export async function throttleWithStream(ctx: ThrottleContext): Promise<Throttle
     const result = await new Promise<ThrottleResult>((resolve) => {
       let contentLength: number | null = null;
       const onHeadersReceived = (details: chrome.webRequest.WebResponseHeadersDetails) => {
-        try { console.debug("[Throttlr][stream] headers for", details.url, { tabId: details.tabId }); } catch {}
+        try {
+          chrome.runtime?.sendMessage?.({ type: "LOGGER_LOG", level: "debug", msg: "[stream] headers", data: { url: details.url, tabId: details.tabId } }, () => {
+            try { (chrome.runtime as any)?.lastError; } catch {}
+          });
+        } catch {}
         if (details.url !== urlToMatch) return;
         if (typeof ctx.tabId === "number" && details.tabId !== ctx.tabId) return;
         const h = details.responseHeaders || [];
@@ -100,7 +104,11 @@ export async function throttleWithStream(ctx: ThrottleContext): Promise<Throttle
       };
 
       const onBeforeRequest = (details: chrome.webRequest.WebRequestDetails) => {
-        try { console.debug("[Throttlr][stream] onBeforeRequest", { url: details.url, type: (details as any).type, tabId: details.tabId }); } catch {}
+        try {
+          chrome.runtime?.sendMessage?.({ type: "LOGGER_LOG", level: "debug", msg: "[stream] onBeforeRequest", data: { url: details.url, type: (details as any).type, tabId: details.tabId } }, () => {
+            try { (chrome.runtime as any)?.lastError; } catch {}
+          });
+        } catch {}
         // Narrow match: exact URL and (optionally) tab
         if (details.url !== urlToMatch) return;
         if (typeof ctx.tabId === "number" && details.tabId !== ctx.tabId) return;
@@ -108,7 +116,11 @@ export async function throttleWithStream(ctx: ThrottleContext): Promise<Throttle
         try {
           // @ts-expect-error MV3 experimental type
           const filter = chrome.webRequest.filterResponseData(details.requestId);
-          try { console.debug("[Throttlr][stream] filter attached", { requestId: details.requestId, url: details.url }); } catch {}
+          try {
+            chrome.runtime?.sendMessage?.({ type: "LOGGER_LOG", level: "debug", msg: "[stream] filter attached", data: { requestId: details.requestId, url: details.url } }, () => {
+              try { (chrome.runtime as any)?.lastError; } catch {}
+            });
+          } catch {}
           const startedAt = Date.now();
           let firstByteAt: number | null = null;
           let sent = 0;

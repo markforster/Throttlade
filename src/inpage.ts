@@ -3,11 +3,28 @@
 import { Rule } from "./types";
 import { THROTTLE_STRATEGY } from "./utils/featureFlags";
 import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
+import { normalizeLogData, type RequestStart, type RequestEnd } from "./utils/logger";
 
 let rules: Rule[] = [];
 let enabled = true;
 
-console.log("Throttlr inpage script loaded");
+function log(level: "debug" | "info" | "warn" | "error", msg: string, data?: any) {
+  try {
+    const payload = data === undefined ? undefined : normalizeLogData(data);
+    window.postMessage({ __THROTTLR__: true, type: "LOG", level, msg, data: payload, context: "inpage" }, "*");
+  } catch {}
+}
+log("info", "Throttlr inpage script loaded");
+
+function postBridge(type: "REQ_TRACK_START" | "REQ_TRACK_END", payload: RequestStart | RequestEnd) {
+  try {
+    window.postMessage({ __THROTTLR__: true, type, payload }, "*");
+  } catch {}
+}
+
+function pathOf(url: string): string {
+  try { return new URL(url, document.baseURI).pathname || url; } catch { return url; }
+}
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 function matches(url: string, method: string) {
@@ -75,7 +92,7 @@ function matches(url: string, method: string) {
 // --- fetch patch ---
 const originalFetch = window.fetch.bind(window);
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  console.log("Throttlr fetch called", input, init);
+  log("debug", "Throttlr fetch called", { input, init });
   const req =
     typeof input === "string"
       ? new Request(input, init)
@@ -85,7 +102,17 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 
   const rule = matches(req.url, req.method || "GET");
   if (rule) {
-    console.log("Throttlr fetch intercepted", req.url, { method: req.method, delayMs: rule.delayMs });
+    log("info", "Throttlr fetch intercepted", { url: req.url, method: req.method, delayMs: rule.delayMs });
+    const id = Math.random().toString(36).slice(2);
+    const startedAt = Date.now();
+    postBridge("REQ_TRACK_START", {
+      id,
+      url: req.url,
+      path: pathOf(req.url),
+      method: (req.method || "GET").toUpperCase(),
+      throttleMs: rule.delayMs,
+      startedAt,
+    });
     // Old timeout-based delay (commented out during strategy integration):
     // await delay(rule.delayMs);
 
@@ -110,6 +137,14 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME", id, ctx }, "*");
       await ack;
     }
+    try {
+      const res = await originalFetch(req);
+      postBridge("REQ_TRACK_END", { id, finishedAt: Date.now() });
+      return res;
+    } catch (e: any) {
+      postBridge("REQ_TRACK_END", { id, finishedAt: Date.now(), error: e?.message || String(e) });
+      throw e;
+    }
   }
   return originalFetch(req);
 };
@@ -118,8 +153,8 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 // --- XHR patch (re-check rules at send time) ---
 const xhrOpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: any[]) {
-  console.log("Throttlr XMLHttpRequest intercepted", { method, url });
-  console.log('Throttlr rules:', rules);
+  log("debug", "Throttlr XMLHttpRequest intercepted", { method, url });
+  log("debug", "Throttlr rules", rules);
   // Normalize to absolute URL and uppercase method so matching is consistent
   let absUrl = url;
   try {
@@ -137,21 +172,40 @@ XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: 
 const xhrSend = XMLHttpRequest.prototype.send;
 XMLHttpRequest.prototype.send = async function (...args: any[]) {
   const ctx = (this as any).__throttlrCtx as { method: string; url: string } | undefined;
-  console.log("Throttlr XMLHttpRequest send called", args, ctx);
+  log("debug", "Throttlr XMLHttpRequest send called", { args, ctx });
 
   // Re-evaluate the rule right before sending (more robust than caching in open)
   let rule: Rule | undefined;
   if (ctx) {
     rule = matches(ctx.url, ctx.method);
   }
-  console.log("Throttlr XMLHttpRequest send rules?", rules, ctx);
-  console.log("Throttlr XMLHttpRequest send rule match?", rule, ctx);
+  log("debug", "Throttlr XMLHttpRequest send rules?", { rules, ctx });
+  log("info", "Throttlr XMLHttpRequest rule match", { rule, ctx });
   if (rule) {
-    console.log("Throttlr XHR delaying", { url: ctx!.url, method: ctx!.method, delayMs: rule.delayMs });
+    log("info", "Throttlr XHR delaying", { url: ctx!.url, method: ctx!.method, delayMs: rule.delayMs });
     // Old timeout-based delay (commented out during strategy integration):
     // await delay(rule.delayMs);
 
     const tctx: ThrottleContext = { url: ctx?.url || "", method: ctx?.method || "GET", throttleMs: rule.delayMs };
+    const reqId = Math.random().toString(36).slice(2);
+    const startedAt = Date.now();
+    (this as any).__throttlrReqId = reqId;
+    postBridge("REQ_TRACK_START", {
+      id: reqId,
+      url: tctx.url,
+      path: pathOf(tctx.url),
+      method: (tctx.method || "GET").toUpperCase(),
+      throttleMs: rule.delayMs,
+      startedAt,
+    });
+    const doneKey = "__throttlrFinished";
+    try { delete (this as any)[doneKey]; } catch {}
+    (this as any)[doneKey] = false;
+    const finish = (err?: string) => {
+      if ((this as any)[doneKey]) return;
+      (this as any)[doneKey] = true;
+      postBridge("REQ_TRACK_END", { id: reqId, finishedAt: Date.now(), ...(err ? { error: err } : {}) });
+    };
     if (THROTTLE_STRATEGY === "TIMEOUT") {
       await throttleWithTimeout(tctx);
     } else {
@@ -169,6 +223,18 @@ XMLHttpRequest.prototype.send = async function (...args: any[]) {
       });
       window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME", id, ctx: tctx }, "*");
       await ack;
+    }
+    try {
+      this.addEventListener("loadend", () => finish(), { once: true });
+      this.addEventListener("error", () => finish("error"), { once: true });
+      this.addEventListener("abort", () => finish("abort"), { once: true });
+      this.addEventListener("timeout", () => finish("timeout"), { once: true });
+    } catch {}
+    try {
+      return await xhrSend.apply(this, args as any);
+    } catch (e: any) {
+      finish(e?.message || "send error");
+      throw e;
     }
   }
 
@@ -189,11 +255,11 @@ window.addEventListener("message", (ev: MessageEvent) => {
   if (d && d.__THROTTLR__ && d.type === "STATE") {
     if (Array.isArray(d.rules)) {
       rules = d.rules;
-      console.log("[Throttlr][inpage] rules updated", rules);
+      log("info", "[Throttlr][inpage] rules updated", rules);
     }
     if (typeof d.enabled === "boolean") {
       enabled = d.enabled;
-      console.log("[Throttlr][inpage] enabled updated", enabled);
+      log("info", "[Throttlr][inpage] enabled updated", { enabled });
     }
   }
 });

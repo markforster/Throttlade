@@ -1,41 +1,36 @@
 import { Rule } from "./types";
 import { THROTTLE_STRATEGY } from "./utils/featureFlags";
 import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
+import { enabled, setEnabled, setRules } from "./utils/rules";
+import { matches } from "./utils/rules/matches";
+import { pathOf } from "./utils/pathOf";
+import { reqStart, reqEnd } from "./utils/requests";
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-
-let rules: Rule[] = [];
-let enabled = true;
+// export let rules: Rule[] = [];
+// export let enabled = true;
 
 // load rules on script start + listen for updates
 chrome.storage.sync.get(["rules", "enabled"], (data) => {
-  rules = data.rules ?? [];
-  enabled = typeof data.enabled === "boolean" ? data.enabled : true;
+  // rules = data.rules ?? [];
+  setRules(data.rules ?? []);
+  // enabled = typeof data.enabled === "boolean" ? data.enabled : true;
+  setEnabled(typeof data.enabled === "boolean" ? data.enabled : true);
 });
+
 chrome.storage.onChanged.addListener((c) => {
-  if (c.rules) rules = c.rules.newValue ?? [];
-  if (c.enabled) enabled = typeof c.enabled.newValue === "boolean" ? c.enabled.newValue : true;
+  // if (c.rules) rules = c.rules.newValue ?? [];
+  if (c.rules) setRules(c.rules.newValue ?? []);
+  if (c.enabled) setEnabled(typeof c.enabled.newValue === "boolean" ? c.enabled.newValue : true);
 });
 
 // Prefer effective state broadcast from the bridge when available
 window.addEventListener("message", (ev: MessageEvent) => {
   const d = ev.data as any;
   if (d && d.__THROTTLR__ && d.type === "STATE") {
-    if (Array.isArray(d.rules)) rules = d.rules as Rule[];
-    if (typeof d.enabled === "boolean") enabled = d.enabled as boolean;
+    if (Array.isArray(d.rules)) setRules(d.rules as Rule[]);
+    if (typeof d.enabled === "boolean") setEnabled(d.enabled as boolean);
   }
 });
-
-function matches(url: string, method: string) {
-  if (!enabled) return undefined;
-  return rules.find(r => {
-    if (r.method && r.method.toUpperCase() !== method.toUpperCase()) return false;
-    return r.isRegex
-      ? new RegExp(r.pattern).test(url)
-      : url.includes(r.pattern);
-  });
-}
 
 // fetch patch
 const originalFetch = window.fetch.bind(window);
@@ -50,6 +45,9 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 
     // New strategy selection
     const ctx: ThrottleContext = { url, method, throttleMs: rule.delayMs };
+    const id = Math.random().toString(36).slice(2);
+    const startedAt = Date.now();
+    reqStart({ id, url, path: pathOf(url), method: (method || "GET").toUpperCase(), throttleMs: rule.delayMs, startedAt });
     if (THROTTLE_STRATEGY === "TIMEOUT") {
       await throttleWithTimeout(ctx);
     } else {
@@ -60,6 +58,14 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       } catch {
         // If messaging fails, we simply proceed without stream throttling.
       }
+    }
+    try {
+      const res = await originalFetch(input, init);
+      reqEnd({ id, finishedAt: Date.now() });
+      return res;
+    } catch (e: any) {
+      reqEnd({ id, finishedAt: Date.now(), error: e?.message || String(e) });
+      throw e;
     }
   }
   return originalFetch(input, init);
@@ -93,6 +99,9 @@ XMLHttpRequest.prototype.send = async function (...args: any[]) {
       throttleMs: rule.delayMs,
     };
 
+    const id = Math.random().toString(36).slice(2);
+    const startedAt = Date.now();
+    try { reqStart({ id, url: ctx.url, path: pathOf(ctx.url), method, throttleMs: rule.delayMs, startedAt }); } catch {}
     if (THROTTLE_STRATEGY === "TIMEOUT") {
       await throttleWithTimeout(ctx);
     } else {
@@ -102,6 +111,11 @@ XMLHttpRequest.prototype.send = async function (...args: any[]) {
         // fall through
       }
     }
+    try {
+      this.addEventListener("loadend", () => {
+        reqEnd({ id, finishedAt: Date.now() });
+      }, { once: true });
+    } catch {}
   }
   return xhrSend.apply(this, args as any);
 };

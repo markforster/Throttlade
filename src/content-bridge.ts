@@ -1,15 +1,11 @@
 import { Rule } from "./types";
-import { getEffectiveState } from "./storage";
+import { getEffectiveState } from "./utils/storage";
+import { Logger } from "./utils/logger";
 
-console.log("[Throttlr][bridge] loaded");
+Logger.info("[bridge] loaded");
 
-function injectInpage() {
-  const s = document.createElement("script");
-  s.src = chrome.runtime.getURL("inpage.js");
-  s.type = "text/javascript";
-  (document.documentElement || document.head || document.body).appendChild(s);
-  s.remove();
-}
+// Note: inpage.js is declared in manifest as a MAIN world content_script.
+// Avoid manual injection here to prevent chrome-extension://invalid requests under strict CSP.
 
 async function computeAndSend() {
   try {
@@ -21,7 +17,7 @@ async function computeAndSend() {
       enabled: eff.effectiveEnabled,
       projectId: eff.projectId,
     };
-    console.log("[Throttlr][bridge] posting STATE", payload);
+    Logger.debug("[bridge] posting STATE", payload);
     window.postMessage(payload, "*");
   } catch (e) {
     // Fallback to legacy keys if helper fails for any reason
@@ -33,12 +29,12 @@ async function computeAndSend() {
       enabled: typeof enabled === "boolean" ? enabled : true,
       projectId: null as string | null,
     };
-    console.log("[Throttlr][bridge] posting STATE (legacy fallback)", payload);
+    Logger.debug("[bridge] posting STATE (legacy fallback)", payload);
     window.postMessage(payload, "*");
   }
 }
 
-injectInpage();
+// inpage is loaded by the manifest; nothing to inject here
 
 // Initial push
 computeAndSend();
@@ -62,10 +58,38 @@ chrome.storage.onChanged.addListener((changes, area) => {
 window.addEventListener("message", (ev: MessageEvent) => {
   const d = ev.data as any;
   if (!d || !d.__THROTTLR__) return;
+  if (d.type === "LOG" && d.level && d.msg) {
+    try {
+      chrome.runtime.sendMessage({ type: "LOGGER_LOG", level: d.level, msg: d.msg, data: d.data, context: d.context || "main" }, () => {
+        try { (chrome.runtime as any)?.lastError; } catch {}
+      });
+    } catch {}
+    return;
+  }
+  if (d.type === "REQ_TRACK_START" && d.payload) {
+    try {
+      chrome.runtime.sendMessage({ type: "REQ_TRACK_START", payload: d.payload }, () => {
+        try { (chrome.runtime as any)?.lastError; } catch {}
+      });
+    } catch {}
+    return;
+  }
+  if (d.type === "REQ_TRACK_END" && d.payload) {
+    try {
+      chrome.runtime.sendMessage({ type: "REQ_TRACK_END", payload: d.payload }, () => {
+        try { (chrome.runtime as any)?.lastError; } catch {}
+      });
+    } catch {}
+    return;
+  }
   if (d.type === "THROTTLE_STREAM_PRIME" && d.ctx) {
     try {
       chrome.runtime.sendMessage({ type: "THROTTLE_STREAM_PRIME", ctx: d.ctx }, () => {
-        // Ack back to the main world so it can proceed
+        // Ack back to the main world regardless of response to avoid dangling warnings
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+          (chrome.runtime as any)?.lastError; // access to clear "Unchecked runtime.lastError" noise
+        } catch {}
         try {
           window.postMessage({ __THROTTLR__: true, type: "THROTTLE_STREAM_PRIME_ACK", id: d.id || null }, "*");
         } catch {}

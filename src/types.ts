@@ -22,3 +22,20 @@ export type AppState = {
   projects: Project[];
   currentProjectId: string | null;
 };
+
+
+export type MessageType = "REQS_UPDATED" | "LOGS_UPDATED" | "LOGGER_CLEAR" | "REQS_GET" | "LOGGER_GET";
+export type PortMessage = {
+  type: MessageType;
+}
+
+export type TrackedReq = {
+  id: string;
+  url: string;
+  path: string;
+  method: string;
+  throttleMs: number;
+  startedAt: number;
+  finishedAt?: number;
+  error?: string;
+};
