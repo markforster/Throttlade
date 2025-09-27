@@ -37,7 +37,7 @@
         "<all_urls>"
       ],
       "js": [
-        "content/content-bridge.js"
+        "content.js"
       ],
       "run_at": "document_start"
     },
