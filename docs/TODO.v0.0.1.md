@@ -1,4 +1,4 @@
-# Throttlrade Projects/Domains — v0.0.1 Completed Work
+# Throttlade Projects/Domains — v0.0.1 Completed Work
 
 Snapshot of all completed items from the projects/domains plan.
 

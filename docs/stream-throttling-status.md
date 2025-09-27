@@ -67,7 +67,7 @@ How to exercise current code
 - Set `THROTTLE_STRATEGY = "STREAM"` in `src/utils/featureFlags.ts`.
 - Build and reload extension.
 - Use the demo page and the rules UI to target the test URL and set a delay.
-- Check the extension service worker console for `[Throttlrade][stream]` logs.
+- Check the extension service worker console for `[Throttlade][stream]` logs.
 
 Pick-up checklist
 

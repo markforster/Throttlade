@@ -1,5 +1,5 @@
 /**
- * Throttling strategies for Throttlrade
+ * Throttling strategies for Throttlade
  *
  * This file intentionally does not wire into existing logic. It exposes two
  * functions with the same interface so they can be selected via a small

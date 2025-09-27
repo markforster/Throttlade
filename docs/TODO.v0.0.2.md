@@ -1,4 +1,4 @@
-# Throttlrade — UX Improvements v0.0.2 (Snapshot)
+# Throttlade — UX Improvements v0.0.2 (Snapshot)
 
 This snapshot captures the UX work completed in this pass.
 

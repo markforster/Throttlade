@@ -1,6 +1,6 @@
-# Throttlrade
+# Throttlade
 
-Throttlrade is a Chrome extension that lets you slow down (or “throttle”) HTTP requests so you can study loading behaviour, reproduce race conditions, and massage performance budgets. It ships with a friendly options dashboard for managing rules, live request/response monitoring, and log capture so you can keep an eye on what the extension is doing.
+Throttlade is a Chrome extension that lets you slow down (or “throttle”) HTTP requests so you can study loading behaviour, reproduce race conditions, and massage performance budgets. It ships with a friendly options dashboard for managing rules, live request/response monitoring, and log capture so you can keep an eye on what the extension is doing.
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ This executes the Jest test suite. The project uses TypeScript-aware Jest config
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode** (toggle in the top-right corner).
 4. Click **Load unpacked** and choose the `dist/` directory.
-5. The “Throttlrade” extension should appear in your toolbar.
+5. The “Throttlade” extension should appear in your toolbar.
 
 Whenever you rebuild, simply refresh the extension in the Extensions page.
 
