@@ -1,7 +1,7 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./../theme/bootstrap.css";
-import "./../styles.css";
+import "./../theme/styles.css";
 import { Card, Button, Form, Stack } from "react-bootstrap";
 import { useGlobalEnabled } from "./../hooks/useGlobalEnabled";
 

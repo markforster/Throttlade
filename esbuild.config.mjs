@@ -19,9 +19,12 @@ function copyStatic() {
     resolve(outdir, "manifest.json")
   );
   safeCopy(resolve(__dirname, "public"), outdir); // now optional
-  safeCopy(resolve(__dirname, "src/popup.html"), resolve(outdir, "popup.html"));
   safeCopy(
-    resolve(__dirname, "src/options.html"),
+    resolve(__dirname, "src/html/popup.html"),
+    resolve(outdir, "popup.html")
+  );
+  safeCopy(
+    resolve(__dirname, "src/html/options.html"),
     resolve(outdir, "options.html")
   );
 }

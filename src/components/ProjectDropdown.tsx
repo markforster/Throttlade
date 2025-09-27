@@ -1,7 +1,5 @@
 import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./theme/bootstrap.css";
-import "./styles.css";
+
 import {
   Form as BsForm,
   Dropdown,
