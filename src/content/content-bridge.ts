@@ -1,6 +1,6 @@
-import { Rule } from "./types/types";
-import { getEffectiveState } from "./utils/storage";
-import { Logger } from "./utils/logger";
+import { Rule } from "../types/types";
+import { getEffectiveState } from "../utils/storage";
+import { Logger } from "../utils/log/logger";
 
 Logger.info("[bridge] loaded");
 

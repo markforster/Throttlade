@@ -107,12 +107,12 @@ const common = {
   format: "esm",
   logLevel: "info",
   entryPoints: {
-    background: "src/background.ts",
+    background: "src/background/background.ts",
     content: "src/content.ts",
-    "content-bridge": "src/content-bridge.ts",
-    inpage: "src/inpage.ts",
-    popup: "src/popup.tsx",
-    options: "src/options.tsx",
+    "content-bridge": "src/content/content-bridge.ts",
+    inpage: "src/inpage/inpage.ts",
+    popup: "src/components/app/popup.tsx",
+    options: "src/components/app/options.tsx",
   },
   loader: loaders,
 };

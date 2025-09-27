@@ -1,4 +1,4 @@
-import type { LogLevel, RequestEnd, RequestStart } from "../utils/logger";
+import type { LogLevel, RequestEnd, RequestStart } from "../utils/log/logger";
 import { bgLog, pushToDashboards } from "../utils/ports";
 import { LOGS, setLogs } from "../utils/log";
 import { broadcastReqs, inflight, recent, REQ_RECENT_CAP, setRecent, Tracked } from "../utils/requests";

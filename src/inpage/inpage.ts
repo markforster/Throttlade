@@ -1,19 +1,12 @@
-// --- src/inpage.ts ---
-
-import { Rule } from "./types/types";
-import { THROTTLE_STRATEGY } from "./utils/featureFlags";
-import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
-import { normalizeLogData, type RequestStart, type RequestEnd } from "./utils/logger";
+import { Rule } from "./../types/types";
+import { THROTTLE_STRATEGY } from "./../utils/featureFlags";
+import { throttleWithTimeout, type ThrottleContext } from "./../utils/throttling";
+import { type RequestStart, type RequestEnd } from "./../utils/log/logger";
+import { log } from "./../utils/log/logit";
 
 let rules: Rule[] = [];
 let enabled = true;
 
-function log(level: "debug" | "info" | "warn" | "error", msg: string, data?: any) {
-  try {
-    const payload = data === undefined ? undefined : normalizeLogData(data);
-    window.postMessage({ __THROTTLR__: true, type: "LOG", level, msg, data: payload, context: "inpage" }, "*");
-  } catch {}
-}
 log("info", "Throttlr inpage script loaded");
 
 function postBridge(type: "REQ_TRACK_START" | "REQ_TRACK_END", payload: RequestStart | RequestEnd) {

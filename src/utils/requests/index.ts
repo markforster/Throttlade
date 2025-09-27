@@ -1,5 +1,5 @@
 import { pushToDashboards } from "../ports";
-import type { LogEntry, LogLevel, RequestEnd, RequestStart } from "./../logger"
+import type { LogEntry, LogLevel, RequestEnd, RequestStart } from "../log/logger"
 
 export type Tracked = RequestStart & { finishedAt?: number; error?: string };
 export const REQ_RECENT_CAP = 50;

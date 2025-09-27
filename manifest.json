@@ -19,7 +19,7 @@
     "128": "icons/web-app-manifest-192x192.png"
   },
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "background/background.js",
     "type": "module"
   },
   "permissions": [
@@ -37,7 +37,7 @@
         "<all_urls>"
       ],
       "js": [
-        "content-bridge.js"
+        "content/content-bridge.js"
       ],
       "run_at": "document_start"
     },
@@ -46,7 +46,7 @@
         "<all_urls>"
       ],
       "js": [
-        "inpage.js"
+        "inpage/inpage.js"
       ],
       "world": "MAIN",
       "run_at": "document_start"

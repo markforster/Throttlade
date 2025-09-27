@@ -1,8 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./theme/bootstrap.css";
-import "./theme/styles.css";
+import "./../../theme/bootstrap.css";
+import "./../../theme/styles.css";
 import {
   Container,
   Stack,
@@ -10,21 +10,21 @@ import {
   Tab,
 } from "react-bootstrap";
 
-import type { Rule, Project } from "./types/types";
-import { useProjectRules } from "./hooks/useProjectRules";
-import { useCurrentProjectName } from "./hooks/useCurrentProjectName";
-import { useProjectSelector } from "./hooks/useProjectSelector";
-import RulesTab from "./components/tabs/RulesTab";
-import RequestsTab from "./components/tabs/RequestsTab";
-import LogsTab from "./components/tabs/LogsTab";
-import ProjectModal from "./components/ProjectModal";
-import AddRuleModal, { RuleFormValues } from "./components/modals/AddRuleModal";
-import DeleteProjectModal from "./components/modals/DeleteProjectModal";
-import DeleteRuleModal from "./components/modals/DeleteRuleModal";
-import NavBar from "./components/NavBar";
-import ProjectDropdown from "./components/ProjectDropdown";
-import AddProjectButton from "./components/buttons/AddProjectButton";
-import DeleteProjectButton from "./components/buttons/DeleteProjectButton";
+import type { Rule, Project } from "../../types/types";
+import { useProjectRules } from "../../hooks/useProjectRules";
+import { useCurrentProjectName } from "../../hooks/useCurrentProjectName";
+import { useProjectSelector } from "../../hooks/useProjectSelector";
+import RulesTab from "../tabs/RulesTab";
+import RequestsTab from "../tabs/RequestsTab";
+import LogsTab from "../tabs/LogsTab";
+import ProjectModal from "../ProjectModal";
+import AddRuleModal, { RuleFormValues } from "../modals/AddRuleModal";
+import DeleteProjectModal from "../modals/DeleteProjectModal";
+import DeleteRuleModal from "../modals/DeleteRuleModal";
+import NavBar from "../NavBar";
+import ProjectDropdown from "../ProjectDropdown";
+import AddProjectButton from "../buttons/AddProjectButton";
+import DeleteProjectButton from "../buttons/DeleteProjectButton";
 
 
 function Dashboard() {

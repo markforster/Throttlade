@@ -1,5 +1,5 @@
 import { LOGS, LOG_CAP, setLogs } from "../log";
-import { LogEntry, LogLevel } from "../logger";
+import { LogEntry, LogLevel } from "../log/logger";
 
 export const dashboardPorts = new Set<chrome.runtime.Port>();
 

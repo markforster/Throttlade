@@ -1,7 +1,7 @@
 import { LogLevel } from "esbuild";
 import React from "react";
 import { Card, Button, Badge } from "react-bootstrap";
-import { LogEntry } from "../../utils/logger";
+import { LogEntry } from "../../utils/log/logger";
 import { safeStringify } from "../../utils/safeStringify";
 
 export default function LogsTab() {

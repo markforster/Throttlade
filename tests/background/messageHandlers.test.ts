@@ -1,4 +1,4 @@
-import type { LogLevel, RequestEnd, RequestStart } from "../../src/utils/logger";
+import type { LogLevel, RequestEnd, RequestStart } from "../../src/utils/log/logger";
 import type { ThrottleContext } from "../../src/utils/throttling";
 
 const mockBgLog = jest.fn();
@@ -67,7 +67,7 @@ const chromeExecuteScript = jest.fn(async () => undefined);
 let messageHandlers: Record<string, (message: any, sendResponse: (value?: any) => void) => any>;
 
 beforeAll(async () => {
-  ({ messageHandlers } = await import("../../src/background"));
+  ({ messageHandlers } = await import("../../src/background/background"));
 });
 
 describe("messageHandlers", () => {
