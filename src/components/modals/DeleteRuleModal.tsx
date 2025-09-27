@@ -1,6 +1,6 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
-import type { Rule } from "../../types";
+import type { Rule } from "../../types/types";
 
 type DeleteRuleModalProps = {
   show: boolean;

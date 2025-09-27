@@ -1,6 +1,4 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./../theme/bootstrap.css";
-import "./../theme/styles.css";
 import {
   Form as BsForm,
 } from "react-bootstrap";

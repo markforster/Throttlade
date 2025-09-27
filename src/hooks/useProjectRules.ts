@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { Rule, Project } from "./../types";
+import type { Rule, Project } from "../types/types";
 
 const RULES_KEY = "rules"; // legacy compatibility
 

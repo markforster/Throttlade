@@ -4,15 +4,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./theme/bootstrap.css";
 import "./theme/styles.css";
 import {
-  Button,
   Container,
   Stack,
   Tabs,
   Tab,
 } from "react-bootstrap";
 
-import type { Rule, Project } from "./types";
-import { Plus, Trash3 } from "react-bootstrap-icons";
+import type { Rule, Project } from "./types/types";
 import { useProjectRules } from "./hooks/useProjectRules";
 import { useCurrentProjectName } from "./hooks/useCurrentProjectName";
 import { useProjectSelector } from "./hooks/useProjectSelector";
@@ -25,6 +23,8 @@ import DeleteProjectModal from "./components/modals/DeleteProjectModal";
 import DeleteRuleModal from "./components/modals/DeleteRuleModal";
 import NavBar from "./components/NavBar";
 import ProjectDropdown from "./components/ProjectDropdown";
+import AddProjectButton from "./components/buttons/AddProjectButton";
+import DeleteProjectButton from "./components/buttons/DeleteProjectButton";
 
 
 function Dashboard() {
@@ -59,17 +59,12 @@ function Dashboard() {
     setShowDelete(false);
   };
 
-  // Toggle selected or specific project's enabled
   const setProjectEnabled = async (id: string, next: boolean) => {
     const { projects: existing } = await chrome.storage.sync.get(["projects"] as any);
     const list: Project[] = Array.isArray(existing) ? (existing as Project[]) : [];
     const merged = list.map((p) => (p.id === id ? { ...p, enabled: next } : p));
     await chrome.storage.sync.set({ projects: merged });
   };
-
-  // Custom project dropdown with inline toggle and per-item toggles
-
-
   const [editingRule, setEditingRule] = React.useState<Rule | null>(null);
 
   const handleRuleSubmit = (values: RuleFormValues) => {
@@ -118,30 +113,16 @@ function Dashboard() {
   return (
     <>
       <NavBar />
-
-      {/* Sub-navbar: project context (single row: left selector/add, right status/toggle/delete) */}
       <div className="bg-light border-bottom subnav-sticky">
         <Container className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
-          <div className="d-flex align-items-center gap-2">
-            <Button size="sm" variant="outline-primary" onClick={openAdd} title="Add project" aria-label="Add project">
-              <Plus className="me-1" size={16} />
-              Add project
-            </Button>
-          </div>
+          <AddProjectButton openAdd={openAdd} />
 
           <div className="d-flex align-items-center gap-2">
             <ProjectDropdown setProjectEnabled={setProjectEnabled} />
-            <Button
-              size="sm"
-              variant="outline-danger"
-              onClick={requestDeleteProject}
-              disabled={!currentId || projects.length <= 1}
-              title={projects.length <= 1 ? "Cannot delete the only project" : "Delete selected project"}
-              aria-label="Delete selected project"
-            >
-              <Trash3 className="me-1" size={16} />
-              {/* Delete project */}
-            </Button>
+            <DeleteProjectButton
+              requestDeleteProject={requestDeleteProject}
+              currentId={currentId}
+              projects={projects} />
           </div>
         </Container>
       </div>
@@ -170,7 +151,6 @@ function Dashboard() {
 
       <Container className="py-4">
         <Stack gap={4}>
-
           <Tabs defaultActiveKey="rules" id="throttlr-tabs">
             <Tab eventKey="rules" title="Rules">
               <RulesTab

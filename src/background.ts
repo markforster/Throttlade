@@ -2,7 +2,7 @@ import { ensureSchemaMigration, getEffectiveState, repairCurrentProjectId } from
 import { throttleWithStream, type ThrottleContext } from "./utils/throttling";
 import type { LogLevel, RequestEnd, RequestStart } from "./utils/logger";
 import { bgLog, dashboardPorts, pushToDashboards } from "./utils/ports";
-import { PortMessage } from "./types";
+import { PortMessage } from "./types/types";
 import { broadcastReqs, inflight, recent, REQ_RECENT_CAP, setRecent, Tracked } from "./utils/requests";
 import { LOGS, setLogs } from "./utils/log";
 

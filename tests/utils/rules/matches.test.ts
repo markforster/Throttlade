@@ -1,4 +1,4 @@
-import type { Rule } from "../../../src/types";
+import type { Rule } from "../../../src/types/types";
 import { matches } from "../../../src/utils/rules/matches";
 
 let mockEnabled = true;

@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge, ProgressBar, Card } from "react-bootstrap";
-import { TrackedReq } from "../../types";
+import { TrackedReq } from "../../types/types";
 import { methodVariant } from "../../utils/rules-ui";
 
 export default function RequestsTab() {

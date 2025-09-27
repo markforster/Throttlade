@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Form as BsForm, Modal } from "react-bootstrap";
-import type { Project } from "../../types";
+import type { Project } from "../../types/types";
 
 export default function ProjectModal({ showAdd, closeAdd }: { showAdd: boolean, closeAdd: () => void; }) {
 

@@ -1,4 +1,4 @@
-import { Rule } from "./types";
+import { Rule } from "./types/types";
 import { getEffectiveState } from "./utils/storage";
 import { Logger } from "./utils/logger";
 

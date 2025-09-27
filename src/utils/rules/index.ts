@@ -1,4 +1,4 @@
-import { Rule } from "../../types";
+import { Rule } from "../../types/types";
 
 export let rules: Rule[] = [];
 export let enabled = true;

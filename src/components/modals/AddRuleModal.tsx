@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, Form, Row, Col, Button, Badge } from "react-bootstrap";
 import { Plus, ExclamationTriangleFill } from "react-bootstrap-icons";
 
-import type { Rule } from "../../types";
+import type { Rule } from "../../types/types";
 
 const DEFAULT_DELAY = 2000;
 
@@ -45,26 +45,32 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit }: A
     }
   }, [editingRule, show]);
 
-  const handleChange = (field: keyof RuleFormValues) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { value } = event.target;
-    setFormValues((prev) => {
-      if (field === "delayMs")
-      {
-        const parsed = Number(value);
-        return { ...prev, delayMs: Number.isNaN(parsed) ? DEFAULT_DELAY : parsed };
-      }
-      if (field === "method")
-      {
-        const methodValue = value.trim();
-        return { ...prev, method: methodValue ? methodValue.toUpperCase() : undefined };
-      }
-      if (field === "isRegex")
-      {
-        return { ...prev, isRegex: value === "regex" };
-      }
-      return { ...prev, [field]: value } as RuleFormValues;
-    });
-  };
+  const handleChange =
+    (field: keyof RuleFormValues) =>
+      (
+        event: React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
+      ) => {
+        const { value } = event.target;
+        setFormValues((prev) => {
+          if (field === "delayMs")
+          {
+            const parsed = Number(value);
+            return { ...prev, delayMs: Number.isNaN(parsed) ? DEFAULT_DELAY : parsed };
+          }
+          if (field === "method")
+          {
+            const methodValue = value.trim();
+            return { ...prev, method: methodValue ? methodValue.toUpperCase() : undefined };
+          }
+          if (field === "isRegex")
+          {
+            return { ...prev, isRegex: value === "regex" };
+          }
+          return { ...prev, [field]: value } as RuleFormValues;
+        });
+      };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

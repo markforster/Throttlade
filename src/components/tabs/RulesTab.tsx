@@ -12,7 +12,7 @@ import {
 } from "react-bootstrap";
 import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk } from "react-bootstrap-icons";
 
-import type { Rule } from "../../types";
+import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;

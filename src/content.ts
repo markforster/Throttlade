@@ -1,4 +1,4 @@
-import { Rule } from "./types";
+import { Rule } from "./types/types";
 import { THROTTLE_STRATEGY } from "./utils/featureFlags";
 import { throttleWithTimeout, type ThrottleContext } from "./utils/throttling";
 import { enabled, setEnabled, setRules } from "./utils/rules";

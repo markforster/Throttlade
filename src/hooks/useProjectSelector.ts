@@ -1,5 +1,5 @@
 import React from "react";
-import { Project } from "../types";
+import { Project } from "../types/types";
 
 export function useProjectSelector() {
   const [projects, setProjects] = React.useState<Project[]>([]);
