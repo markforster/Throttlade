@@ -15,9 +15,9 @@ The background bundle drives the extension’s long-lived logic: it listens for 
 
 If you ever need to tweak background behaviour, start in `src/background/` (for ports, lifecycle, and message handlers) and remember the compiled output is what Chrome actually executes.
 
-## content → `src/content.ts`
+## content → `src/content.entry.ts`
 
-The content bundle is injected into every page and is responsible for wrapping `fetch` and `XMLHttpRequest`, syncing throttling state, and reporting when requests are delayed. The new structure breaks this into a few files under `src/content/`, but the compiled entrypoint remains `src/content.ts`. esbuild outputs `dist/content.js`, which the manifest loads in the first `content_scripts` block:
+The content bundle is injected into every page and is responsible for wrapping `fetch` and `XMLHttpRequest`, syncing throttling state, and reporting when requests are delayed. The orchestrator lives in `src/content.entry.ts`, which simply wires together the helpers located under `src/content/`. esbuild outputs `dist/content.js`, which the manifest loads in the first `content_scripts` block:
 
 ```json
 {
@@ -65,7 +65,7 @@ For quick reference, here is how each entry point appears in both the source tre
 | esbuild entry | Source file                | Output path                       | Manifest hook |
 |---------------|----------------------------|-----------------------------------|----------------|
 | `background`  | `src/background.ts`        | `dist/background/background.js`   | `background.service_worker` |
-| `content`     | `src/content.ts`           | `dist/content.js`                 | First `content_scripts` entry |
+| `content`     | `src/content.entry.ts`     | `dist/content.js`                 | First `content_scripts` entry |
 | `content-bridge` | `src/content-bridge.ts` | `dist/content-bridge.js`          | Second `content_scripts` entry |
 | `inpage`      | `src/inpage.ts`            | `dist/inpage/inpage.js`           | Second `content_scripts` entry |
 | `popup`       | `src/popup.tsx`            | `dist/popup.js`                   | `action.default_popup` (via `popup.html`) |
