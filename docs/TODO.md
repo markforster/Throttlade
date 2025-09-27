@@ -313,3 +313,13 @@ Allow turning individual rules on/off without deleting them. Disabled rules shou
 - [ ] Visual cue for disabled rules (e.g., muted row or badge)
 - [ ] Matching logic: update `inpage.ts` and `content.ts` matchers to skip disabled rules
 - [ ] Bridge payload remains the same list; rules with `enabled=false` are still sent but ignored by matchers
+
+## Background Module Refactor
+
+- [ ] Audit current responsibilities in `src/background.ts` and confirm boundaries for separate modules (ports, lifecycle, dashboard, message routing).
+- [ ] Extract dashboard port wiring into `src/background/dashboardPorts.ts`; expose a `setupDashboardPorts()` initializer.
+- [ ] Create `src/background/lifecycle.ts` for install/startup logic with a shared `initializeExtension()` used by both listeners.
+- [ ] Move runtime message handlers into `src/background/messages.ts`, using a message-type map so each handler is isolated and testable.
+- [ ] Encapsulate request tracking handlers in a helper (e.g., `handleRequestMessage`) that updates inflight/recent state and notifies dashboards.
+- [ ] Update `src/background.ts` to act as a thin entrypoint that imports and registers the extracted initializers.
+- [ ] Add unit tests (where practical) for the new modules, particularly message and request handler utilities.

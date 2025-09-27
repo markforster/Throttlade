@@ -1,11 +1,5 @@
-Disable
-  animations/transitions
-  on
-  Bootstrap
-  toggles
-  (switches)
-  .form-switch
-  .form-check-input,
+/* Disable animations/transitions on Bootstrap toggles (switches) */
+.form-switch .form-check-input,
 .form-check-input {
   transition: none !important;
 }

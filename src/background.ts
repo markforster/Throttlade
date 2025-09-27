@@ -30,17 +30,18 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-chrome.runtime.onInstalled.addListener(async () => {
+async function initializeExtension(context: "install" | "startup") {
   await ensureSchemaMigration().catch(() => {});
   await repairCurrentProjectId().catch(() => {});
-  try { const eff = await getEffectiveState(); bgLog("info", "effective state (install)", eff, "bg"); } catch {}
-  reinjectAll();
+  try { const eff = await getEffectiveState(); bgLog("info", `effective state (${context})`, eff, "bg"); } catch {}
+  await reinjectAll();
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  initializeExtension("install").catch(() => {});
 });
-chrome.runtime.onStartup.addListener(async () => {
-  await ensureSchemaMigration().catch(() => {});
-  await repairCurrentProjectId().catch(() => {});
-  try { const eff = await getEffectiveState(); bgLog("info", "effective state (startup)", eff, "bg"); } catch {}
-  reinjectAll();
+chrome.runtime.onStartup.addListener(() => {
+  initializeExtension("startup").catch(() => {});
 });
 
 async function reinjectAll() {
@@ -70,37 +71,43 @@ async function openDashboardTab() {
   await chrome.tabs.create({ url: targetUrl });
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === "OPEN_DASHBOARD_TAB") {
-    openDashboardTab().then(() => sendResponse(true)).catch(() => sendResponse(false));
-    return true; // keep channel open for async response
-  }
-  if (message?.type === "LOGGER_LOG") {
+type RuntimeMessage = { type?: string; [key: string]: unknown };
+type MessageHandler = (message: RuntimeMessage, sendResponse: (response?: any) => void) => boolean | void | Promise<boolean | void>;
+
+export const messageHandlers: Record<string, MessageHandler> = {
+  OPEN_DASHBOARD_TAB: (_message, sendResponse) =>
+    openDashboardTab().then(() => sendResponse(true)).catch(() => sendResponse(false)),
+
+  LOGGER_LOG: (message, sendResponse) => {
     const { level, msg, data, context } = message as { level: LogLevel; msg: string; data?: any; context?: string };
     bgLog(level, msg, data, context);
     sendResponse(true);
     return true;
-  }
-  if (message?.type === "LOGGER_CLEAR") {
+  },
+
+  LOGGER_CLEAR: (_message, sendResponse) => {
     setLogs([]);
     pushToDashboards({ type: "LOGS_UPDATED", entries: LOGS });
     sendResponse(true);
     return true;
-  }
-  if (message?.type === "LOGGER_GET") {
+  },
+
+  LOGGER_GET: (_message, sendResponse) => {
     sendResponse({ entries: LOGS });
     return true;
-  }
-  if (message?.type === "REQ_TRACK_START") {
-    const start = message.payload as RequestStart;
+  },
+
+  REQ_TRACK_START: (message, sendResponse) => {
+    const start = (message as { payload: RequestStart }).payload;
     inflight.set(start.id, { ...start });
     bgLog("info", "Request throttled", { path: start.path, method: start.method, delayMs: start.throttleMs, url: start.url });
     broadcastReqs();
     sendResponse(true);
     return true;
-  }
-  if (message?.type === "REQ_TRACK_END") {
-    const end = message.payload as RequestEnd;
+  },
+
+  REQ_TRACK_END: (message, sendResponse) => {
+    const end = (message as { payload: RequestEnd }).payload;
     const current = inflight.get(end.id);
     if (current) {
       inflight.delete(end.id);
@@ -120,12 +127,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     broadcastReqs();
     sendResponse(true);
     return true;
-  }
-  if (message?.type === "REQS_GET") {
+  },
+
+  REQS_GET: (_message, sendResponse) => {
     sendResponse({ inflight: Array.from(inflight.values()), recent });
     return true;
-  }
-  if (message?.type === "THROTTLE_STREAM_PRIME" && message.ctx) {
+  },
+
+  THROTTLE_STREAM_PRIME: (message, sendResponse) => {
+    if (!message.ctx) {
+      sendResponse({ started: false });
+      return true;
+    }
     try {
       const ctx = message.ctx as ThrottleContext;
       // Start stream throttling asynchronously; respond immediately so callers can proceed.
@@ -136,8 +149,26 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ started: false });
     }
     return true;
+  },
+};
+
+chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
+  if (!message?.type) return undefined;
+  const handler = messageHandlers[message.type];
+  if (!handler) return undefined;
+  try {
+    const result = handler(message, sendResponse);
+    if (result instanceof Promise) {
+      result.catch(() => {
+        try { sendResponse(false); } catch { /* no-op */ }
+      });
+      return true;
+    }
+    return result === true;
+  } catch {
+    try { sendResponse(false); } catch { /* no-op */ }
+    return false;
   }
-  return undefined;
 });
 
 // Legacy popup behavior (kept for reference)
