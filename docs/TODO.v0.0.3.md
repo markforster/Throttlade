@@ -32,5 +32,10 @@ This snapshot captures work completed after the v0.0.2 UX pass.
 ## Next Focus (not included in this snapshot)
 
 - Refactor options.tsx into components/hooks (see TODO.md Refactoring)
-- Advanced table features: search, grouping, view-only sorting
-- Rule management: per-rule enable/disable
+- Advanced table features: grouping, view-only sorting (search implemented later)
+
+## Post‑snapshot updates (progress since v0.0.3)
+
+- Per‑rule enable/disable: UI toggle in Rules table; disabled rows muted; matchers and previews skip disabled rules.
+- Rules table polish: icon‑only conflict badges (outlined), Method column before URL/Path with fixed badge width, Delay header shows "Delay (ms)" and rows show numeric values only.
+- Free‑text search: input in header filtering by pattern/method/mode with quotes and `-` negation; ANDed with method filter.
