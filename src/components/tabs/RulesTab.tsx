@@ -22,9 +22,10 @@ type RulesTabProps = {
   onAddRule: () => void;
   onEditRule: (rule: Rule) => void;
   onRequestDelete: (rule: Rule) => void;
+  onManageOrder: () => void;
 };
 
-export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete }: RulesTabProps) {
+export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete, onManageOrder }: RulesTabProps) {
   const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
 
   const filteredRules = React.useMemo(() => {
@@ -72,6 +73,15 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
               Current rules
             </Card.Title>
             <div className="d-flex align-items-center gap-2">
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={onManageOrder}
+                title="Manage rule order"
+                aria-label="Manage rule order"
+              >
+                Manage order
+              </Button>
               <Dropdown align="end" autoClose="outside">
                 <Dropdown.Toggle
                   variant={selectedMethods.size ? "primary" : "outline-secondary"}

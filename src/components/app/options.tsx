@@ -21,6 +21,7 @@ import ProjectModal from "../ProjectModal";
 import AddRuleModal, { RuleFormValues } from "../modals/AddRuleModal";
 import DeleteProjectModal from "../modals/DeleteProjectModal";
 import DeleteRuleModal from "../modals/DeleteRuleModal";
+import ManageOrderModal from "../modals/ManageOrderModal";
 import NavBar from "../NavBar";
 import ProjectDropdown from "../ProjectDropdown";
 import AddProjectButton from "../buttons/AddProjectButton";
@@ -110,6 +111,12 @@ function Dashboard() {
     setPendingDelete(null);
   };
 
+  // Manage order modal
+  const [showManageOrder, setShowManageOrder] = React.useState<boolean>(false);
+  const openManageOrder = () => setShowManageOrder(true);
+  const closeManageOrder = () => setShowManageOrder(false);
+  const saveOrder = (next: Rule[]) => { save(next); setShowManageOrder(false); };
+
   return (
     <>
       <NavBar />
@@ -149,6 +156,13 @@ function Dashboard() {
         onConfirm={confirmDeleteRule}
       />
 
+      <ManageOrderModal
+        show={showManageOrder}
+        rules={rules}
+        onClose={closeManageOrder}
+        onSave={saveOrder}
+      />
+
       <Container className="py-4">
         <Stack gap={4}>
           <Tabs defaultActiveKey="rules" id="throttlr-tabs">
@@ -158,6 +172,7 @@ function Dashboard() {
                 onAddRule={openAddRule}
                 onEditRule={openEditRule}
                 onRequestDelete={(rule) => setPendingDelete(rule)}
+                onManageOrder={openManageOrder}
               />
             </Tab>
 
