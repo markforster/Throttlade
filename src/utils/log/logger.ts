@@ -16,7 +16,7 @@ export function normalizeLogData(value: any, depth = 3): any {
   if (value instanceof URL) return value.toString();
   if (value instanceof Error) return { message: value.message, stack: value.stack };
   if (typeof Request !== "undefined" && value instanceof Request) {
-    return { type: "Request", url: value.url, method: value.method, redirected: value.redirected };
+    return { type: "Request", url: value.url, method: value.method, redirect: value.redirect };
   }
   if (typeof Response !== "undefined" && value instanceof Response) {
     return { type: "Response", url: value.url, status: value.status, redirected: value.redirected };

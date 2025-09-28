@@ -1,6 +1,6 @@
 {
   "name": "throttlade",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "dependencies": {
     "bootstrap": "^5.3.8",
@@ -12,6 +12,7 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
+    "prebuild": "node scripts/sync-version.mjs",
     "build": "node esbuild.config.mjs",
     "build:theme": "sass --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
     "build:all": "npm run build:theme && node esbuild.config.mjs",
@@ -20,6 +21,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "sync:version": "node scripts/sync-version.mjs",
+    "version": "node scripts/sync-version.mjs && git add manifest.json",
     "serve:demo": "http-server demo -p 5500 -c-1",
     "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css"
   },

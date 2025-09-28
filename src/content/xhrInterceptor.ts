@@ -18,7 +18,18 @@ export function patchXMLHttpRequest() {
     {
       (this as any).__throttlrCtx = { method: (method || "GET").toUpperCase(), url: String(url) };
     }
-    return originalOpen.call(this, method, url, ...rest);
+    // Ensure we satisfy TS typing for XHR.open: provide 'async' default
+    const asyncFlag: boolean = (rest && rest.length > 0) ? Boolean(rest[0]) : true;
+    const username: string | null | undefined = rest && rest.length > 1 ? (rest[1] as any) : null;
+    const password: string | null | undefined = rest && rest.length > 2 ? (rest[2] as any) : null;
+    const argsArr: [string, string | URL, boolean, (string | null)?, (string | null)?] = [
+      method,
+      url as any,
+      asyncFlag,
+      username as any,
+      password as any,
+    ];
+    return originalOpen.apply(this as any, argsArr as any);
   };
 
   XMLHttpRequest.prototype.send = async function (...args: any[]) {

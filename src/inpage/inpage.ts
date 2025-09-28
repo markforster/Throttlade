@@ -159,7 +159,18 @@ XMLHttpRequest.prototype.open = function (method: string, url: string, ...rest: 
     url: absUrl,
   };
 
-  return xhrOpen.apply(this, [method, url, ...rest]);
+  // Ensure we always provide the required 'async' boolean for typings
+  const asyncFlag: boolean = (rest && rest.length > 0) ? Boolean(rest[0]) : true;
+  const username: string | null | undefined = rest && rest.length > 1 ? (rest[1] as any) : null;
+  const password: string | null | undefined = rest && rest.length > 2 ? (rest[2] as any) : null;
+  const argsArr: [string, string | URL, boolean, (string | null)?, (string | null)?] = [
+    method,
+    url as any,
+    asyncFlag,
+    username as any,
+    password as any,
+  ];
+  return xhrOpen.apply(this as any, argsArr as any);
 };
 
 const xhrSend = XMLHttpRequest.prototype.send;
