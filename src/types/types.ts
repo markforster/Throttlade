@@ -6,6 +6,7 @@ export type Rule = {
   isRegex?: boolean; // true => regex mode; false/undefined => wildcard (URLPattern)
   delayMs: number; // integer ms
   method?: string; // GET/POST/... or ""
+  enabled?: boolean; // default true; when false, rule is ignored
 };
 
 // Projects/domains (planning ahead). Adding types is safe and non-breaking.

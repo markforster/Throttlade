@@ -95,6 +95,7 @@ function Dashboard() {
         isRegex: values.isRegex,
         delayMs: normalizedDelay,
         method: values.method,
+        enabled: true,
       };
       save([next, ...rules]);
     }

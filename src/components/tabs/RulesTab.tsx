@@ -9,6 +9,7 @@ import {
   Stack,
   Table,
   Tooltip,
+  Form as BsForm,
 } from "react-bootstrap";
 import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk } from "react-bootstrap-icons";
 
@@ -187,19 +188,20 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                 <th scope="col" className="text-nowrap">Method</th>
                 <th scope="col" className="text-nowrap">Match Mode</th>
                 <th scope="col" className="text-end text-nowrap">Delay</th>
+                <th scope="col" className="text-nowrap text-end">Enabled</th>
                 <th scope="col" className="text-end text-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredRules.map((rule, index) => (
-                <tr key={rule.id}>
+                <tr key={rule.id} className={rule.enabled === false ? "text-muted" : undefined}>
                   <td className="text-nowrap col-index">
                     <span className="fw-semibold">#{index + 1}</span>
                   </td>
                   <td className="align-middle w-100">
                     <div className="d-flex align-items-center gap-2">
                       <span className="fw-semibold">{rule.pattern}</span>
-                      <span className="ms-auto">{renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
+                      <span className="ms-auto">{rule.enabled === false ? null : renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
                     </div>
                   </td>
                   <td className="align-middle text-nowrap">
@@ -220,6 +222,20 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                   </td>
                   <td className="text-end align-middle text-nowrap">{rule.delayMs} ms</td>
                   <td className="text-end align-middle text-nowrap">
+                    <BsForm.Check
+                      type="switch"
+                      id={`rule-enabled-${rule.id}`}
+                      checked={rule.enabled !== false}
+                      onChange={(e: any) => {
+                        if (!onReorderRules) return;
+                        const next = rules.map(r => r.id === rule.id ? { ...r, enabled: e.target.checked } : r);
+                        onReorderRules(next);
+                      }}
+                      title={rule.enabled === false ? "Enable rule" : "Disable rule"}
+                      aria-label={rule.enabled === false ? "Enable rule" : "Disable rule"}
+                    />
+                  </td>
+                  <td className="text-end align-middle text-nowrap">
                     <ButtonGroup size="sm">
                       <Button variant="outline-secondary" onClick={() => onEditRule(rule)} title="Edit rule" aria-label="Edit rule">
                         <Pencil className="me-1" size={16} />
@@ -235,14 +251,14 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
               ))}
               {rules.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted py-4">
+                  <td colSpan={7} className="text-center text-muted py-4">
                     No rules yet. Click "Add rule" to create one.
                   </td>
                 </tr>
               )}
               {rules.length > 0 && filteredRules.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center text-muted py-4">
+                  <td colSpan={7} className="text-center text-muted py-4">
                     No rules match the selected filters.
                   </td>
                 </tr>

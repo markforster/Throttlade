@@ -41,5 +41,21 @@ describe("rules preview helpers", () => {
     expect(steps[1].methodOk).toBe(true);
     expect(steps[1].patternOk).toBe(true);
   });
-});
 
+  test("disabled rules are ignored by preview helpers", () => {
+    const rules: Rule[] = [
+      mk("disabled", "api", false, "GET"),
+      mk("win", "/api/v1", false, "GET"),
+    ];
+    // Mark the first rule disabled
+    (rules[0] as any).enabled = false;
+
+    const res = getFirstMatch(rules, "https://x.com/api/v1", "GET");
+    expect(res?.rule.id).toBe("win");
+
+    const steps = getEvaluationPath(rules, "https://x.com/api/v1", "GET");
+    // Only the enabled rule should be evaluated
+    expect(steps.length).toBe(1);
+    expect(steps[0].patternOk).toBe(true);
+  });
+});
