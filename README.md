@@ -141,3 +141,7 @@ Design and implementation details live in `docs/rule-shadowing.md`. The analyzer
 Feel free to open issues or submit pull requests. Please run `npm test` and `npm run lint` before committing so the CI pipeline stays green.
 
 Happy debugging!
+
+## License
+
+This project is licensed under the MIT License – see `LICENSE` for details.

@@ -46,7 +46,7 @@
     "ts-jest": "^29.4.4",
     "typescript": "^5.6.0"
   },
-  "author": "bethehedgehog",
-  "license": "ISC",
+  "author": "Mark Forster",
+  "license": "MIT",
   "description": ""
 }
