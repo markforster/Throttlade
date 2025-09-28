@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button, ListGroup, Badge, ButtonGroup } from "react-bootstrap";
+import { Modal, Button, ListGroup, Badge, ButtonGroup, OverlayTrigger, Tooltip } from "react-bootstrap";
 import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
 import { ArrowUp, ArrowDown, Asterisk, BracesAsterisk, GripVertical } from "react-bootstrap-icons";
@@ -20,6 +20,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { analyzeConflicts, type RuleConflict } from "../../utils/rules/analyze";
 
 type ManageOrderModalProps = {
   show: boolean;
@@ -33,11 +34,13 @@ function SortableRuleItem({
   index,
   total,
   onMove,
+  conflict,
 }: {
   rule: Rule;
   index: number;
   total: number;
   onMove: (index: number, delta: number) => void;
+  conflict?: RuleConflict;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: rule.id });
   const style: React.CSSProperties = {
@@ -49,12 +52,32 @@ function SortableRuleItem({
     cursor: "default",
   };
 
+  const conflictBadge = (() => {
+    if (!conflict) return null;
+    const hasDef = conflict.definiteBlockers.length > 0;
+    const hasPos = !hasDef && conflict.possibleBlockers.length > 0;
+    if (!hasDef && !hasPos) return null;
+    const label = hasDef ? "Never matches" : "May not match";
+    const variant = hasDef ? "danger" : "warning";
+    const reason = conflict.reasons[0];
+    const tip = reason ? `${label} — blocked by #${reason.blockerIndex + 1}. ${reason.detail}` : label;
+    const overlay = (
+      <Tooltip id={`tt-${rule.id}`}>{tip}</Tooltip>
+    );
+    return (
+      <OverlayTrigger placement="top" overlay={overlay} delay={{ show: 150, hide: 0 }}>
+        <Badge bg={variant} title={label} aria-label={label}>{label}</Badge>
+      </OverlayTrigger>
+    );
+  })();
+
   return (
     <ListGroup.Item ref={setNodeRef} style={style} className="d-flex align-items-center justify-content-between gap-2">
       <div className="d-flex align-items-center gap-2 flex-wrap me-auto">
         <span className="fw-semibold text-truncate">{rule.pattern}</span>
       </div>
       <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        {conflictBadge}
         <Badge bg={methodVariant(rule.method)}>
           {methodIcon(rule.method) ? <span className="me-1" aria-hidden>{methodIcon(rule.method)}</span> : null}
           {rule.method || "Any"}
@@ -65,7 +88,7 @@ function SortableRuleItem({
           </span>
           {rule.isRegex ? "Regex" : "Wildcard"}
         </Badge>
-        <Badge bg="secondary" title="Delay">{rule.delayMs} ms</Badge>
+        {/* <Badge bg="secondary" title="Delay">{rule.delayMs} ms</Badge> */}
         <ButtonGroup size="sm" hidden={true}>
           <Button
             variant="outline-secondary"
@@ -138,6 +161,10 @@ export default function ManageOrderModal({ show, rules, onClose, onSave }: Manag
 
   const handleSave = () => onSave(list);
 
+  const report = React.useMemo(() => analyzeConflicts(list), [list]);
+  const definiteCount = report.rulesWithDefinite;
+  const possibleCount = report.rulesWithPossible;
+
   return (
     <Modal show={show} onHide={onClose} centered scrollable size="lg" dialogClassName="manage-order-modal">
       <Modal.Header closeButton>
@@ -161,13 +188,21 @@ export default function ManageOrderModal({ show, rules, onClose, onSave }: Manag
                     index={idx}
                     total={list.length}
                     onMove={move}
+                    conflict={report.byRuleId[r.id]}
                   />
                 ))}
               </ListGroup>
             </SortableContext>
           </DndContext>
         )}
-        <div className="text-muted small mt-2">Top items have higher match priority.</div>
+        <div className="text-muted small mt-2 d-flex justify-content-between align-items-center">
+          <span>Top items have higher match priority.</span>
+          <span>
+            Conflicts: <span className="text-danger fw-semibold">{definiteCount} definite</span>
+            {" "}
+            <span className="text-warning fw-semibold">{possibleCount} possible</span>
+          </span>
+        </div>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="outline-secondary" onClick={onClose}>Cancel</Button>
