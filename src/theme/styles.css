@@ -47,9 +47,11 @@
 }
 
 /* Manage Order modal sizing + list appearance */
-.manage-order-modal .modal-dialog {
+.modal-dialog.manage-order-modal {
   /* Wider modal: cap by viewport width; comfortably wide for content */
   --bs-modal-width: min(90vw, 60rem);
+  /* Enforce a minimum comfortable width (~720px) on larger screens */
+  min-width: 45rem;
   /* Top/bottom breathing room using viewport-aware clamp */
   --bs-modal-margin: clamp(3em, 8vh, 5em);
 }

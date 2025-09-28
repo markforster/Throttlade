@@ -44,13 +44,17 @@ function SortableRuleItem({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.8 : 1,
+    position: isDragging ? "relative" : undefined,
+    zIndex: isDragging ? 1051 : undefined,
     cursor: "default",
   };
 
   return (
     <ListGroup.Item ref={setNodeRef} style={style} className="d-flex align-items-center justify-content-between gap-2">
-      <div className="d-flex align-items-center gap-2 flex-wrap">
-        <span className="fw-semibold">{rule.pattern}</span>
+      <div className="d-flex align-items-center gap-2 flex-wrap me-auto">
+        <span className="fw-semibold text-truncate">{rule.pattern}</span>
+      </div>
+      <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
         <Badge bg={methodVariant(rule.method)}>
           {methodIcon(rule.method) ? <span className="me-1" aria-hidden>{methodIcon(rule.method)}</span> : null}
           {rule.method || "Any"}
@@ -62,9 +66,7 @@ function SortableRuleItem({
           {rule.isRegex ? "Regex" : "Wildcard"}
         </Badge>
         <Badge bg="secondary" title="Delay">{rule.delayMs} ms</Badge>
-      </div>
-      <div className="d-flex align-items-center gap-2">
-        <ButtonGroup size="sm">
+        <ButtonGroup size="sm" hidden={true}>
           <Button
             variant="outline-secondary"
             onClick={() => onMove(index, -1)}
@@ -137,7 +139,7 @@ export default function ManageOrderModal({ show, rules, onClose, onSave }: Manag
   const handleSave = () => onSave(list);
 
   return (
-    <Modal show={show} onHide={onClose} centered scrollable dialogClassName="manage-order-modal">
+    <Modal show={show} onHide={onClose} centered scrollable size="lg" dialogClassName="manage-order-modal">
       <Modal.Header closeButton>
         <Modal.Title>Manage rule order</Modal.Title>
       </Modal.Header>
