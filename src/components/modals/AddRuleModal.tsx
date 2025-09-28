@@ -1,8 +1,11 @@
 import React from "react";
-import { Modal, Form, Row, Col, Button, Badge } from "react-bootstrap";
+import { Modal, Form, Row, Col, Button, Badge, Alert } from "react-bootstrap";
+import { methodVariant } from "../../utils/rules-ui";
 import { Plus, ExclamationTriangleFill } from "react-bootstrap-icons";
 
 import type { Rule } from "../../types/types";
+import { analyzeConflicts, type ConflictReport } from "../../utils/rules/analyze";
+import { getFirstMatch, getEvaluationPath } from "../../utils/rules/preview";
 
 const DEFAULT_DELAY = 2000;
 
@@ -18,6 +21,8 @@ type AddRuleModalProps = {
   editingRule: Rule | null;
   onClose: () => void;
   onSubmit: (values: RuleFormValues) => void;
+  rules: Rule[];
+  onReorderRules?: (next: Rule[]) => void;
 };
 
 const createEmptyFormValues = (): RuleFormValues => ({
@@ -27,8 +32,11 @@ const createEmptyFormValues = (): RuleFormValues => ({
   isRegex: false,
 });
 
-export default function AddRuleModal({ show, editingRule, onClose, onSubmit }: AddRuleModalProps) {
+export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rules, onReorderRules }: AddRuleModalProps) {
   const [formValues, setFormValues] = React.useState<RuleFormValues>(createEmptyFormValues());
+  const [previewUrl, setPreviewUrl] = React.useState<string>("");
+  const [previewMethod, setPreviewMethod] = React.useState<string>("GET");
+  const [showEvalSteps, setShowEvalSteps] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (editingRule)
@@ -44,6 +52,106 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit }: A
       setFormValues(createEmptyFormValues());
     }
   }, [editingRule, show]);
+
+  // Persist preview inputs across modal openings within the session
+  const PREVIEW_URL_KEY = "THROTTLR_PREVIEW_URL";
+  const PREVIEW_METHOD_KEY = "THROTTLR_PREVIEW_METHOD";
+
+  React.useEffect(() => {
+    if (!show) return;
+    try {
+      const savedUrl = sessionStorage.getItem(PREVIEW_URL_KEY);
+      const savedMethod = sessionStorage.getItem(PREVIEW_METHOD_KEY);
+      if (savedUrl) setPreviewUrl(savedUrl);
+      if (savedMethod) setPreviewMethod(savedMethod);
+    } catch {
+      // ignore storage access errors
+    }
+  }, [show]);
+
+  React.useEffect(() => {
+    try { sessionStorage.setItem(PREVIEW_URL_KEY, previewUrl); } catch { /* ignore */ }
+  }, [previewUrl]);
+
+  React.useEffect(() => {
+    try { sessionStorage.setItem(PREVIEW_METHOD_KEY, previewMethod); } catch { /* ignore */ }
+  }, [previewMethod]);
+
+  const isPatternEmpty = !formValues.pattern.trim();
+  const isRegexInvalid = React.useMemo(() => {
+    if (!formValues.isRegex) return false;
+    const pat = formValues.pattern;
+    if (!pat.trim()) return false; // handled by required
+    try {
+      // eslint-disable-next-line no-new
+      new RegExp(pat);
+      return false;
+    } catch {
+      return true;
+    }
+  }, [formValues.isRegex, formValues.pattern]);
+  const canSubmit = !isPatternEmpty && !isRegexInvalid;
+
+  // Build a simulated list with the form values applied
+  const simulatedList: Rule[] = React.useMemo(() => {
+    const tempRule: Rule = {
+      id: editingRule ? editingRule.id : "__NEW__",
+      pattern: formValues.pattern.trim(),
+      isRegex: formValues.isRegex,
+      delayMs: Math.max(0, Math.round(formValues.delayMs || 0)),
+      method: formValues.method,
+    };
+    if (editingRule) {
+      return rules.map((r) => (r.id === editingRule.id ? tempRule : r));
+    }
+    // New rules appear first in current UX
+    return [tempRule, ...rules];
+  }, [rules, formValues, editingRule]);
+
+  const conflictReport: ConflictReport | null = React.useMemo(() => {
+    try {
+      return analyzeConflicts(simulatedList);
+    } catch {
+      return null;
+    }
+  }, [simulatedList]);
+
+  const activeRuleId = editingRule ? editingRule.id : "__NEW__";
+  const conflict = conflictReport?.byRuleId[activeRuleId];
+  const conflictLabel = conflict
+    ? conflict.definiteBlockers.length > 0
+      ? "Never matches"
+      : conflict.possibleBlockers.length > 0
+        ? "May not match"
+        : null
+    : null;
+  const conflictReason = conflict && conflict.reasons[0] ? conflict.reasons[0].detail : null;
+  const blockerIndex = conflict && conflict.reasons[0] ? conflict.reasons[0].blockerIndex : null;
+  const blockerRule = blockerIndex != null ? simulatedList[blockerIndex] : null;
+
+  const moveAboveBlocker = () => {
+    if (!editingRule || blockerIndex == null || !onReorderRules) return;
+    const from = rules.findIndex((r) => r.id === editingRule.id);
+    if (from === -1) return;
+    const to = Math.max(0, Math.min(blockerIndex, rules.length - 1));
+    if (from === to) return;
+    const next = rules.slice();
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onReorderRules(next);
+  };
+
+  const firstMatch = React.useMemo(() => {
+    const url = previewUrl.trim();
+    if (!url) return null;
+    return getFirstMatch(simulatedList, url, previewMethod || "GET");
+  }, [previewUrl, previewMethod, simulatedList]);
+
+  const evaluationSteps = React.useMemo(() => {
+    const url = previewUrl.trim();
+    if (!url) return [] as ReturnType<typeof getEvaluationPath>;
+    return getEvaluationPath(simulatedList, url, previewMethod || "GET");
+  }, [previewUrl, previewMethod, simulatedList]);
 
   const handleChange =
     (field: keyof RuleFormValues) =>
@@ -100,15 +208,21 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit }: A
             <Col xs={12}>
               <Form.Group controlId="modal-rule-pattern">
                 <Form.Label>Pattern</Form.Label>
-                <Form.Control
-                  name="pattern"
-                  placeholder="/api/* or ^https://api\\.site\\.com"
-                  required
-                  value={formValues.pattern}
-                  onChange={handleChange("pattern")}
-                />
-              </Form.Group>
-            </Col>
+              <Form.Control
+                name="pattern"
+                placeholder="/api/* or ^https://api\\.site\\.com"
+                required
+                value={formValues.pattern}
+                onChange={handleChange("pattern")}
+                isInvalid={isRegexInvalid}
+              />
+              {formValues.isRegex ? (
+                <Form.Control.Feedback type="invalid">
+                  Invalid regular expression. Please fix the pattern.
+                </Form.Control.Feedback>
+              ) : null}
+            </Form.Group>
+          </Col>
 
             <Col md={4} xs={12}>
               <Form.Group controlId="modal-rule-method">
@@ -164,10 +278,90 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit }: A
                 </Badge>
               </Col>
             ) : null}
+
+            {conflictLabel ? (
+              <Col xs={12}>
+                <Alert variant={conflictLabel === "Never matches" ? "danger" : "warning"} className="py-2 mb-0">
+                  <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div>
+                      <strong>{conflictLabel}.</strong>{" "}
+                      {blockerIndex != null && blockerRule ? (
+                        <>
+                          Blocked by <strong>#{blockerIndex + 1}</strong>{" "}
+                          <span className="fw-semibold">{blockerRule.pattern}</span>{" "}
+                          <Badge bg={methodVariant(blockerRule.method)}>{blockerRule.method || "Any"}</Badge>
+                          {conflictReason ? <span>{" — "}{conflictReason}</span> : null}
+                        </>
+                      ) : (
+                        conflictReason ? <span>{conflictReason}</span> : null
+                      )}
+                    </div>
+                    {editingRule && onReorderRules && blockerIndex != null ? (
+                      <Button size="sm" variant="outline-secondary" onClick={moveAboveBlocker}>
+                        Move above blocker
+                      </Button>
+                    ) : null}
+                  </div>
+                </Alert>
+              </Col>
+            ) : null}
+
+            <Col xs={12}>
+              <div className="d-flex align-items-end gap-2 flex-wrap">
+                <Form.Group className="flex-grow-1" controlId="preview-url">
+                  <Form.Label className="mb-1">Preview URL</Form.Label>
+                  <Form.Control
+                    placeholder="https://example.com/api/users"
+                    value={previewUrl}
+                    onChange={(e) => setPreviewUrl(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group style={{ minWidth: 140 }} controlId="preview-method">
+                  <Form.Label className="mb-1">Method</Form.Label>
+                  <Form.Select value={previewMethod} onChange={(e) => setPreviewMethod(e.target.value)}>
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>PATCH</option>
+                    <option>DELETE</option>
+                  </Form.Select>
+                </Form.Group>
+              </div>
+              {previewUrl.trim() ? (
+                <div className="small text-muted mt-1">
+                  {firstMatch ? (
+                    <>
+                      Would match <strong>#{firstMatch.index + 1}</strong>: <strong>{firstMatch.rule.pattern}</strong>{" "}
+                      <Badge bg={methodVariant(firstMatch.rule.method)} className="align-middle">
+                        {firstMatch.rule.method || "Any"}
+                      </Badge>
+                    </>
+                  ) : (
+                    <span>No rule would match this request.</span>
+                  )}
+                  <div className="mt-1">
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 align-baseline"
+                      onClick={() => setShowEvalSteps((s) => !s)}
+                    >
+                      {showEvalSteps ? "Hide evaluation steps" : "Show evaluation steps"}
+                    </button>
+                  </div>
+                  {showEvalSteps && evaluationSteps.length > 0 ? (
+                    <ul className="mt-1 mb-0 ps-3">
+                      {evaluationSteps.map((s) => (
+                        <li key={s.idx} className={s.win ? "text-success" : undefined}>{s.text}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ) : null}
+            </Col>
           </Row>
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
-            <Button variant="primary" type="submit" title={submitLabel} aria-label={submitLabel}>
+            <Button variant="primary" type="submit" title={submitLabel} aria-label={submitLabel} disabled={!canSubmit}>
               <Plus className="me-1" size={16} />
               {submitLabel}
             </Button>

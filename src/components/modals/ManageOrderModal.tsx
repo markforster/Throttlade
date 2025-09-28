@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button, ListGroup, Badge, ButtonGroup, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Modal, Button, ListGroup, Badge, ButtonGroup, OverlayTrigger, Tooltip, Form } from "react-bootstrap";
 import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
 import { ArrowUp, ArrowDown, Asterisk, BracesAsterisk, GripVertical } from "react-bootstrap-icons";
@@ -35,12 +35,14 @@ function SortableRuleItem({
   total,
   onMove,
   conflict,
+  onMoveAboveBlocker,
 }: {
   rule: Rule;
   index: number;
   total: number;
   onMove: (index: number, delta: number) => void;
   conflict?: RuleConflict;
+  onMoveAboveBlocker: (ruleId: string, blockerIndex: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: rule.id });
   const style: React.CSSProperties = {
@@ -66,7 +68,18 @@ function SortableRuleItem({
     );
     return (
       <OverlayTrigger placement="top" overlay={overlay} delay={{ show: 150, hide: 0 }}>
-        <Badge bg={variant} title={label} aria-label={label}>{label}</Badge>
+        <div className="d-inline-flex align-items-center gap-2">
+          <Badge bg={variant} title={label} aria-label={label}>{label}</Badge>
+          {reason ? (
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              onClick={(e) => { e.stopPropagation(); onMoveAboveBlocker(rule.id, reason.blockerIndex); }}
+            >
+              Move above blocker
+            </Button>
+          ) : null}
+        </div>
       </OverlayTrigger>
     );
   })();
@@ -126,6 +139,7 @@ function SortableRuleItem({
 
 export default function ManageOrderModal({ show, rules, onClose, onSave }: ManageOrderModalProps) {
   const [list, setList] = React.useState<Rule[]>(rules);
+  const [showConflictedOnly, setShowConflictedOnly] = React.useState(false);
 
   React.useEffect(() => {
     if (show) setList(rules);
@@ -161,9 +175,36 @@ export default function ManageOrderModal({ show, rules, onClose, onSave }: Manag
 
   const handleSave = () => onSave(list);
 
-  const report = React.useMemo(() => analyzeConflicts(list), [list]);
-  const definiteCount = report.rulesWithDefinite;
-  const possibleCount = report.rulesWithPossible;
+  const moveAboveBlocker = (ruleId: string, blockerIndex: number) => {
+    setList((prev) => {
+      const from = prev.findIndex((r) => r.id === ruleId);
+      if (from === -1) return prev;
+      const to = Math.max(0, Math.min(blockerIndex, prev.length - 1));
+      if (from === to) return prev;
+      const next = prev.slice();
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  };
+
+  const report = React.useMemo(() => {
+    try {
+      return analyzeConflicts(list);
+    } catch {
+      return null;
+    }
+  }, [list]);
+  const definiteCount = report?.rulesWithDefinite || 0;
+  const possibleCount = report?.rulesWithPossible || 0;
+
+  const displayList = React.useMemo(() => {
+    if (!showConflictedOnly || !report) return list;
+    return list.filter((r) => {
+      const c = report.byRuleId[r.id];
+      return c && (c.definiteBlockers.length > 0 || c.possibleBlockers.length > 0);
+    });
+  }, [list, showConflictedOnly, report]);
 
   return (
     <Modal show={show} onHide={onClose} centered scrollable size="lg" dialogClassName="manage-order-modal">
@@ -179,25 +220,33 @@ export default function ManageOrderModal({ show, rules, onClose, onSave }: Manag
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext items={list.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={displayList.map((r) => r.id)} strategy={verticalListSortingStrategy}>
               <ListGroup>
-                {list.map((r, idx) => (
+                {displayList.map((r, idx) => (
                   <SortableRuleItem
                     key={r.id}
                     rule={r}
                     index={idx}
-                    total={list.length}
+                    total={displayList.length}
                     onMove={move}
-                    conflict={report.byRuleId[r.id]}
+                    conflict={report ? report.byRuleId[r.id] : undefined}
+                    onMoveAboveBlocker={moveAboveBlocker}
                   />
                 ))}
               </ListGroup>
             </SortableContext>
           </DndContext>
         )}
-        <div className="text-muted small mt-2 d-flex justify-content-between align-items-center">
+        <div className="text-muted small mt-2 d-flex justify-content-between align-items-center gap-2">
           <span>Top items have higher match priority.</span>
-          <span>
+          <span className="d-flex align-items-center gap-3">
+            <Form.Check
+              type="switch"
+              id="conflicted-only-toggle"
+              label="Show conflicted only"
+              checked={showConflictedOnly}
+              onChange={(e) => setShowConflictedOnly(e.target.checked)}
+            />
             Conflicts: <span className="text-danger fw-semibold">{definiteCount} definite</span>
             {" "}
             <span className="text-warning fw-semibold">{possibleCount} possible</span>
