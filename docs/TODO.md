@@ -202,12 +202,11 @@ Provide a search box in place of the “Current rules” title (with a clear X b
 
 Add an optional “Group by” control next to the filter icon to group rules in the table. When grouping is off, render a single flat list (current behavior). When grouping is on, partition the filtered rules into labeled groups by Method or by Match Mode. Filters still apply; groups only affect presentation. Grouping must not mutate stored order.
 
-- [ ] Add “Group by” control (Dropdown with: None, Method, Match Mode)
-- [ ] Derive grouped data structure from already‑filtered rules: `{ heading, items[] }[]`
-- [ ] Render groups with small headers (sticky within card optional) and tables/rows per group (or a single table with grouped sections)
-- [ ] Keep rule action buttons functional; group headers show item counts
-- [ ] Ensure grouping works with search and method filters simultaneously
-- [ ] A11y: mark group headers with appropriate semantics
+- [x] Add “Group by” control (Dropdown with: None, Method, Match Mode)
+- [x] Derive grouped data from already-filtered rules; preserve original order within each group using stored indices.
+- [x] Render groups with headers and per-group tables while keeping row actions functional and badge styling consistent.
+- [x] Ensure grouping works with search and method filters (AND semantics applied before grouping).
+- [x] A11y: labelled control and semantic headers (badge + text, count displayed).
 
 ### Sorting (View‑Only)
 

@@ -39,6 +39,7 @@ Rules are evaluated top‑down; the first match wins. New rules are added at the
 
 Header actions/search (top of the Rules tab):
 - Search box: Filter rules by free text across pattern, method (GET/POST/Any), and match mode (Regex/Wildcard). Case‑insensitive; supports quoted phrases and exclusions with a leading `-`.
+- Group by: View-only grouping (None, Method, Match mode). Preserves rule order inside each group; works in combination with search/method filters.
 - Manage order: Opens a drag‑and‑drop modal to reorder rules. See Ordering below.
 - Filter by method: Funnel icon opens a menu with checkboxes for GET/POST/PUT/PATCH/DELETE and Clear / Select all.
 - Add rule: Opens the Add/Edit modal.
@@ -98,6 +99,7 @@ Rules for matching:
 - Quoted phrases: `"/api v1"` keeps rules containing that exact phrase.
 - Exclude with `-`: `-regex` hides regex rules; `api -get` keeps rules containing `api` but not method GET.
 - Works with the Method filter: both must pass (method checkboxes first, then search).
+- Grouping is view-only: toggle the “Group by” control to cluster by Method or Match mode after filters/search are applied.
 
 Tips:
 - Use the “×” button in the input to clear your search.

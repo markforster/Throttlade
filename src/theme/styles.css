@@ -69,6 +69,15 @@
   color: #000 !important;
 }
 
+/* Grouped rules sections */
+.rules-group-header {
+  margin-bottom: 0.5rem;
+}
+
+.rules-group-header .badge {
+  font-size: 0.75rem;
+}
+
 /* Global text color fix: ensure readable black text across headings, labels, inputs */
 :root,
 [data-bs-theme="light"] {

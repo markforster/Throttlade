@@ -20,6 +20,10 @@ import { analyzeConflicts, type RuleConflict } from "../../utils/rules/analyze";
 import { parseSearchTokens, matchesSearch } from "./RulesTab.search";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
+const METHOD_GROUP_ORDER = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "ANY"] as const;
+const MODE_GROUP_ORDER = ["WILDCARD", "REGEX"] as const;
+
+type GroupBy = "none" | "method" | "mode";
 
 type RulesTabProps = {
   rules: Rule[];
@@ -30,10 +34,18 @@ type RulesTabProps = {
   onReorderRules?: (next: Rule[]) => void;
 };
 
+type GroupSection = {
+  key: string;
+  label: string;
+  badge: React.ReactNode;
+  rules: Rule[];
+};
+
 export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete, onManageOrder, onReorderRules }: RulesTabProps) {
   const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
   const [searchText, setSearchText] = React.useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = React.useState<string>("");
+  const [groupBy, setGroupBy] = React.useState<GroupBy>("none");
 
   React.useEffect(() => {
     const handle = window.setTimeout(() => setDebouncedSearch(searchText), 150);
@@ -134,6 +146,151 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
     setSelectedMethods(new Set(METHODS));
   };
 
+  const noRules = rules.length === 0;
+  const noMatches = !noRules && filteredRules.length === 0;
+
+  const tableHeader = (
+    <thead>
+      <tr>
+        <th scope="col" className="text-nowrap col-index" aria-label="Order"></th>
+        <th scope="col" className="text-nowrap col-method">Method</th>
+        <th scope="col" className="w-100">URL / Path</th>
+        <th scope="col" className="text-nowrap">Match Mode</th>
+        <th scope="col" className="text-end text-nowrap">Delay (ms)</th>
+        <th scope="col" className="text-nowrap text-end">Enabled</th>
+        <th scope="col" className="text-end text-nowrap">Actions</th>
+      </tr>
+    </thead>
+  );
+
+  const renderRow = (rule: Rule) => {
+    const originalIndex = (indexLookup.get(rule.id) ?? 0) + 1;
+    const conflict = report ? report.byRuleId[rule.id] : undefined;
+    return (
+      <tr key={rule.id} className={rule.enabled === false ? "text-muted" : undefined}>
+        <td className="text-nowrap col-index">
+          <span className="fw-semibold">#{originalIndex}</span>
+        </td>
+        <td className="align-middle text-nowrap col-method">
+          <Badge bg={methodVariant(rule.method)} className="method-badge text-uppercase">
+            {methodIcon(rule.method) ? (
+              <span className="me-1" aria-hidden="true">{methodIcon(rule.method)}</span>
+            ) : null}
+            {rule.method || "Any"}
+          </Badge>
+        </td>
+        <td className="align-middle w-100">
+          <div className="d-flex align-items-center gap-2">
+            <span className="fw-semibold">{rule.pattern}</span>
+            <span className="ms-auto">{rule.enabled === false ? null : renderConflictBadge(conflict, rule.id, rule)}</span>
+          </div>
+        </td>
+        <td className="align-middle text-nowrap">
+          <Badge className={matchModeBadgeClasses(!!rule.isRegex)}>
+            <span className="me-1" aria-hidden="true">
+              {rule.isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}
+            </span>
+            {rule.isRegex ? "Regex" : "Wildcard"}
+          </Badge>
+        </td>
+        <td className="text-end align-middle text-nowrap">{rule.delayMs}</td>
+        <td className="text-end align-middle text-nowrap">
+          <BsForm.Check
+            type="switch"
+            id={`rule-enabled-${rule.id}`}
+            checked={rule.enabled !== false}
+            onChange={(e: any) => {
+              if (!onReorderRules) return;
+              const next = rules.map((r) => (r.id === rule.id ? { ...r, enabled: e.target.checked } : r));
+              onReorderRules(next);
+            }}
+            title={rule.enabled === false ? "Enable rule" : "Disable rule"}
+            aria-label={rule.enabled === false ? "Enable rule" : "Disable rule"}
+          />
+        </td>
+        <td className="text-end align-middle text-nowrap">
+          <ButtonGroup size="sm">
+            <Button variant="outline-secondary" onClick={() => onEditRule(rule)} title="Edit rule" aria-label="Edit rule">
+              <Pencil className="me-1" size={16} />
+              <span className="visually-hidden">Edit</span>
+            </Button>
+            <Button variant="outline-danger" onClick={() => onRequestDelete(rule)} title="Delete rule" aria-label="Delete rule">
+              <Trash3 className="me-1" size={16} />
+              <span className="visually-hidden">Delete</span>
+            </Button>
+          </ButtonGroup>
+        </td>
+      </tr>
+    );
+  };
+
+  const groupedSections = React.useMemo<GroupSection[]>(() => {
+    if (groupBy === "none") return [];
+    const map = new Map<string, Rule[]>();
+    const keyForRule = groupBy === "method"
+      ? (rule: Rule) => (rule.method ? rule.method.toUpperCase() : "ANY")
+      : (rule: Rule) => (rule.isRegex ? "REGEX" : "WILDCARD");
+
+    filteredRules.forEach((rule) => {
+      const key = keyForRule(rule);
+      const bucket = map.get(key);
+      if (bucket) bucket.push(rule);
+      else map.set(key, [rule]);
+    });
+
+    const baseOrder = groupBy === "method" ? Array.from(METHOD_GROUP_ORDER) : Array.from(MODE_GROUP_ORDER);
+    const keys = Array.from(map.keys());
+    const orderedKeys: string[] = [];
+    baseOrder.forEach((key) => {
+      if (map.has(key)) orderedKeys.push(key);
+    });
+    keys.sort();
+    keys.forEach((key) => {
+      if (!orderedKeys.includes(key)) orderedKeys.push(key);
+    });
+
+    return orderedKeys.map<GroupSection>((key) => {
+      const rulesInGroup = (map.get(key) ?? []).slice();
+      rulesInGroup.sort((a, b) => (indexLookup.get(a.id) ?? 0) - (indexLookup.get(b.id) ?? 0));
+
+      if (groupBy === "method") {
+        const methodKey = key === "ANY" ? undefined : key;
+        const badge = (
+          <Badge bg={methodVariant(methodKey)} className="method-badge text-uppercase">
+            {methodIcon(methodKey) ? <span className="me-1" aria-hidden="true">{methodIcon(methodKey)}</span> : null}
+            {methodKey || "Any"}
+          </Badge>
+        );
+        return {
+          key: `method-${key}`,
+          label: methodKey || "Any",
+          badge,
+          rules: rulesInGroup,
+        };
+      }
+
+      const isRegex = key === "REGEX";
+      const badge = (
+        <Badge className={matchModeBadgeClasses(isRegex)}>
+          <span className="me-1" aria-hidden="true">{isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}</span>
+          {isRegex ? "Regex" : "Wildcard"}
+        </Badge>
+      );
+      return {
+        key: `mode-${key}`,
+        label: isRegex ? "Regex" : "Wildcard",
+        badge,
+        rules: rulesInGroup,
+      };
+    });
+  }, [filteredRules, groupBy, indexLookup]);
+
+  const renderEmptyRow = (message: string) => (
+    <tr>
+      <td colSpan={7} className="text-center text-muted py-4">{message}</td>
+    </tr>
+  );
+
   return (
     <Card className="mt-3">
       <Card.Body>
@@ -218,6 +375,21 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                   </div>
                 </Dropdown.Menu>
               </Dropdown>
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  variant="outline-secondary"
+                  size="sm"
+                  aria-label="Group rules"
+                  title="Group rules"
+                >
+                  Group by
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item active={groupBy === "none"} onClick={() => setGroupBy("none")}>None</Dropdown.Item>
+                  <Dropdown.Item active={groupBy === "method"} onClick={() => setGroupBy("method")}>Method</Dropdown.Item>
+                  <Dropdown.Item active={groupBy === "mode"} onClick={() => setGroupBy("mode")}>Match mode</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
               <Button variant="primary" size="sm" onClick={onAddRule} title="Add rule" aria-label="Add rule">
                 <Plus className="me-1" size={16} />
                 Add rule
@@ -225,91 +397,42 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
             </div>
           </div>
 
-          <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
-            <thead>
-              <tr>
-                <th scope="col" className="text-nowrap col-index" aria-label="Order"></th>
-                <th scope="col" className="text-nowrap col-method">Method</th>
-                <th scope="col" className="w-100">URL / Path</th>
-                <th scope="col" className="text-nowrap">Match Mode</th>
-                <th scope="col" className="text-end text-nowrap">Delay (ms)</th>
-                <th scope="col" className="text-nowrap text-end">Enabled</th>
-                <th scope="col" className="text-end text-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRules.map((rule, index) => (
-                <tr key={rule.id} className={rule.enabled === false ? "text-muted" : undefined}>
-                  <td className="text-nowrap col-index">
-                    <span className="fw-semibold">#{(indexLookup.get(rule.id) ?? index) + 1}</span>
-                  </td>
-                  <td className="align-middle text-nowrap col-method">
-                    <Badge bg={methodVariant(rule.method)} className="method-badge text-uppercase">
-                      {methodIcon(rule.method) ? (
-                        <span className="me-1" aria-hidden="true">{methodIcon(rule.method)}</span>
-                      ) : null}
-                      {rule.method || "Any"}
-                    </Badge>
-                  </td>
-                  <td className="align-middle w-100">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="fw-semibold">{rule.pattern}</span>
-                      <span className="ms-auto">{rule.enabled === false ? null : renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
+          {groupBy === "none" ? (
+            <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
+              {tableHeader}
+              <tbody>
+                {noRules
+                  ? renderEmptyRow("No rules yet. Click \"Add rule\" to create one.")
+                  : noMatches
+                    ? renderEmptyRow("No rules match the selected filters.")
+                    : filteredRules.map(renderRow)}
+              </tbody>
+            </Table>
+          ) : (
+            <div>
+              {noRules ? (
+                <div className="text-center text-muted py-4">No rules yet. Click "Add rule" to create one.</div>
+              ) : noMatches ? (
+                <div className="text-center text-muted py-4">No rules match the selected filters.</div>
+              ) : (
+                groupedSections.map((section) => (
+                  <div key={section.key} className="rules-group mb-4">
+                    <div className="rules-group-header d-flex align-items-center justify-content-between gap-2">
+                      <div className="d-flex align-items-center gap-2">
+                        {section.badge}
+                        <span className="fw-semibold">{section.label}</span>
+                      </div>
+                      <span className="text-muted small">{section.rules.length} {section.rules.length === 1 ? "rule" : "rules"}</span>
                     </div>
-                  </td>
-                  <td className="align-middle text-nowrap">
-                    <Badge className={matchModeBadgeClasses(!!rule.isRegex)}>
-                      <span className="me-1" aria-hidden="true">
-                        {rule.isRegex ? <BracesAsterisk size={14} /> : <Asterisk size={14} />}
-                      </span>
-                      {rule.isRegex ? "Regex" : "Wildcard"}
-                    </Badge>
-                  </td>
-                  <td className="text-end align-middle text-nowrap">{rule.delayMs}</td>
-                  <td className="text-end align-middle text-nowrap">
-                    <BsForm.Check
-                      type="switch"
-                      id={`rule-enabled-${rule.id}`}
-                      checked={rule.enabled !== false}
-                      onChange={(e: any) => {
-                        if (!onReorderRules) return;
-                        const next = rules.map(r => r.id === rule.id ? { ...r, enabled: e.target.checked } : r);
-                        onReorderRules(next);
-                      }}
-                      title={rule.enabled === false ? "Enable rule" : "Disable rule"}
-                      aria-label={rule.enabled === false ? "Enable rule" : "Disable rule"}
-                    />
-                  </td>
-                  <td className="text-end align-middle text-nowrap">
-                    <ButtonGroup size="sm">
-                      <Button variant="outline-secondary" onClick={() => onEditRule(rule)} title="Edit rule" aria-label="Edit rule">
-                        <Pencil className="me-1" size={16} />
-                        <span className="visually-hidden">Edit</span>
-                      </Button>
-                      <Button variant="outline-danger" onClick={() => onRequestDelete(rule)} title="Delete rule" aria-label="Delete rule">
-                        <Trash3 className="me-1" size={16} />
-                        <span className="visually-hidden">Delete</span>
-                      </Button>
-                    </ButtonGroup>
-                  </td>
-                </tr>
-              ))}
-              {rules.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center text-muted py-4">
-                    No rules yet. Click "Add rule" to create one.
-                  </td>
-                </tr>
+                    <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
+                      {tableHeader}
+                      <tbody>{section.rules.map(renderRow)}</tbody>
+                    </Table>
+                  </div>
+                ))
               )}
-              {rules.length > 0 && filteredRules.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-center text-muted py-4">
-                    No rules match the selected filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
+            </div>
+          )}
         </Stack>
       </Card.Body>
     </Card>
