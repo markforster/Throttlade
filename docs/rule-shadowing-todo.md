@@ -8,7 +8,7 @@ Small, verifiable steps to implement conflict detection and UX.
   - [x] `analyzeConflicts(rules: Rule[]): ConflictReport`
   - [x] Internal helpers: `coversMethod`, `isDefiniteSubset`, `isPossibleOverlap`, `isContainsRegexFor`, `isVeryBroadRegex` (plus `hasDotStar`, `isUniversalRegex`, `extractLiteralTokens`, `literalHead`, etc.)
 - [x] Integrate analyzer in Manage Order modal:
-  - [ ] Compute `report` on `list` and update on drag/move
+  - [x] Compute `report` on `list` and update on drag/move
   - [x] Show inline badges per item: “Never matches” (definite) / “May not match” (possible)
   - [x] Header summary: “Conflicts: X definite, Y possible”
 - [x] Integrate analyzer in Rules table:
@@ -48,13 +48,13 @@ Small, verifiable steps to implement conflict detection and UX.
 
 ## Wiring Details
 
-- [ ] `RulesTab` (`src/components/tabs/RulesTab.tsx:1`):
-  - [ ] Compute once per render (memoize by rules)
-  - [ ] Add badge/tooltip in first column before pattern text
+- [x] `RulesTab` (`src/components/tabs/RulesTab.tsx:1`):
+  - [x] Compute once per render (memoize by rules)
+  - [x] Add badge/tooltip in first column before pattern text
   - [ ] Implement “Move above blocker” using existing save/reorder flow
-- [ ] `ManageOrderModal` (`src/components/modals/ManageOrderModal.tsx:1`):
-  - [ ] Analyze `list` state; recalc on drag end and on arrow move
-  - [ ] Display per‑item badge and header summary
+- [x] `ManageOrderModal` (`src/components/modals/ManageOrderModal.tsx:1`):
+  - [x] Analyze `list` state; recalc on drag end and on arrow move
+  - [x] Display per‑item badge and header summary
 - [ ] `AddRuleModal` (`src/components/modals/AddRuleModal.tsx:1`):
   - [ ] Analyze draft values vs current ordered rules, excluding self on edit
   - [ ] Show callout when applicable
