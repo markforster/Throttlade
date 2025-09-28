@@ -87,7 +87,7 @@ export async function throttleWithStream(ctx: ThrottleContext): Promise<Throttle
     let resolved = false;
     const result = await new Promise<ThrottleResult>((resolve) => {
       let contentLength: number | null = null;
-      const onHeadersReceived = (details: chrome.webRequest.WebResponseHeadersDetails) => {
+      const onHeadersReceived = (details: chrome.webRequest.OnHeadersReceivedDetails) => {
         try {
           chrome.runtime?.sendMessage?.({ type: "LOGGER_LOG", level: "debug", msg: "[stream] headers", data: { url: details.url, tabId: details.tabId } }, () => {
             try { (chrome.runtime as any)?.lastError; } catch {}
@@ -96,7 +96,7 @@ export async function throttleWithStream(ctx: ThrottleContext): Promise<Throttle
         if (details.url !== urlToMatch) return;
         if (typeof ctx.tabId === "number" && details.tabId !== ctx.tabId) return;
         const h = details.responseHeaders || [];
-        const cl = h.find((x) => x.name.toLowerCase() === "content-length");
+        const cl = h.find((header: chrome.webRequest.HttpHeader) => header.name.toLowerCase() === "content-length");
         if (cl && cl.value) {
           const n = Number(cl.value);
           if (Number.isFinite(n) && n > 0) contentLength = n;

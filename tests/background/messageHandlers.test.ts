@@ -1,5 +1,7 @@
-import type { LogLevel, RequestEnd, RequestStart } from "../../src/utils/log/logger";
+
+import { LogLevel, RequestEnd, RequestStart } from "../../src/utils/log/logger";
 import type { ThrottleContext } from "../../src/utils/throttling";
+import { installChromeMock } from "../__mocks__/chrome";
 
 const mockBgLog = jest.fn();
 const mockPushToDashboards = jest.fn();
@@ -38,19 +40,12 @@ jest.mock("../../src/utils/throttling", () => ({
 }));
 
 const chromeTabsQuery = jest.fn(async () => [] as any[]);
-const chromeTabsUpdate = jest.fn(async () => undefined);
-const chromeTabsCreate = jest.fn(async () => undefined);
-const chromeWindowsUpdate = jest.fn(async () => undefined);
-const chromeExecuteScript = jest.fn(async () => undefined);
+const chromeTabsUpdate = jest.fn(async () => ({}) as any);
+const chromeTabsCreate = jest.fn(async () => ({}) as any);
+const chromeWindowsUpdate = jest.fn(async () => ({}) as any);
+const chromeExecuteScript = jest.fn(async () => [] as any);
 
-(globalThis as any).chrome = {
-  runtime: {
-    onConnect: { addListener: jest.fn() },
-    onInstalled: { addListener: jest.fn() },
-    onStartup: { addListener: jest.fn() },
-    onMessage: { addListener: jest.fn() },
-    getURL: (path: string) => `chrome-extension://test/${path}`,
-  },
+installChromeMock({
   tabs: {
     query: chromeTabsQuery,
     update: chromeTabsUpdate,
@@ -62,7 +57,7 @@ const chromeExecuteScript = jest.fn(async () => undefined);
   scripting: {
     executeScript: chromeExecuteScript,
   },
-} as unknown as typeof chrome;
+});
 
 let messageHandlers: Record<string, (message: any, sendResponse: (value?: any) => void) => any>;
 
