@@ -24,9 +24,10 @@ type RulesTabProps = {
   onEditRule: (rule: Rule) => void;
   onRequestDelete: (rule: Rule) => void;
   onManageOrder: () => void;
+  onReorderRules?: (next: Rule[]) => void;
 };
 
-export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete, onManageOrder }: RulesTabProps) {
+export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete, onManageOrder, onReorderRules }: RulesTabProps) {
   const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
 
   const filteredRules = React.useMemo(() => {
@@ -37,8 +38,28 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
     });
   }, [rules, selectedMethods]);
 
-  const report = React.useMemo(() => analyzeConflicts(rules), [rules]);
-  const renderConflictBadge = (conflict?: RuleConflict, ruleId?: string) => {
+  const report = React.useMemo(() => {
+    try {
+      return analyzeConflicts(rules);
+    } catch {
+      return null;
+    }
+  }, [rules]);
+
+  const moveAboveBlocker = (rule: Rule, conflict: RuleConflict) => {
+    if (!onReorderRules) return;
+    const reason = conflict.reasons[0];
+    if (!reason) return;
+    const from = rules.findIndex((r) => r.id === rule.id);
+    if (from === -1) return;
+    const to = Math.max(0, Math.min(reason.blockerIndex, rules.length - 1));
+    if (from === to) return;
+    const next = rules.slice();
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onReorderRules(next);
+  };
+  const renderConflictBadge = (conflict?: RuleConflict, ruleId?: string, rule?: Rule) => {
     if (!conflict) return null;
     const hasDef = conflict.definiteBlockers.length > 0;
     const hasPos = !hasDef && conflict.possibleBlockers.length > 0;
@@ -50,7 +71,18 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
     const overlay = (<Tooltip id={`tt-row-${ruleId}`}>{tip}</Tooltip>);
     return (
       <OverlayTrigger placement="top" overlay={overlay} delay={{ show: 150, hide: 0 }}>
-        <Badge bg={variant} className="me-2" title={label} aria-label={label}>{label}</Badge>
+        <div className="d-inline-flex align-items-center gap-2">
+          <Badge bg={variant} className="me-2" title={label} aria-label={label}>{label}</Badge>
+          {reason && onReorderRules ? (
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              onClick={(e) => { e.stopPropagation(); if (rule) moveAboveBlocker(rule, conflict); }}
+            >
+              Move above blocker
+            </Button>
+          ) : null}
+        </div>
       </OverlayTrigger>
     );
   };
@@ -167,7 +199,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                   <td className="align-middle w-100">
                     <div className="d-flex align-items-center gap-2">
                       <span className="fw-semibold">{rule.pattern}</span>
-                      <span className="ms-auto">{renderConflictBadge(report.byRuleId[rule.id], rule.id)}</span>
+                      <span className="ms-auto">{renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
                     </div>
                   </td>
                   <td className="align-middle text-nowrap">

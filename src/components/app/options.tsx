@@ -156,6 +156,7 @@ function Dashboard() {
         editingRule={editingRule}
         onClose={closeAddRule}
         onSubmit={handleRuleSubmit}
+        rules={rules}
       />
 
       <DeleteProjectModal
@@ -188,6 +189,7 @@ function Dashboard() {
                 onEditRule={openEditRule}
                 onRequestDelete={(rule) => setPendingDelete(rule)}
                 onManageOrder={openManageOrder}
+                onReorderRules={(next) => save(next)}
               />
             </Tab>
 
