@@ -27,6 +27,7 @@ function matches(url: string, method: string) {
   try { u = new URL(url, document.baseURI); } catch { return undefined; }
 
   for (const r of rules) {
+    if (r && r.enabled === false) continue;
     // method filter
     if (r.method && r.method.toUpperCase() !== upper) continue;
 

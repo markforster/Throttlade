@@ -28,9 +28,10 @@ export function testPattern(rule: Rule, url: string): boolean {
 export function getFirstMatch(rules: Rule[], url: string, method: string): MatchResult {
   const m = normalizeMethod(method || "GET");
   const u = url || "";
-  const winner = rules.find((r) => methodCovers(r.method, m) && testPattern(r, u));
+  const active = rules.filter(r => r.enabled !== false);
+  const winner = active.find((r) => methodCovers(r.method, m) && testPattern(r, u));
   if (!winner) return null;
-  const index = rules.findIndex((r) => r.id === winner.id);
+  const index = active.findIndex((r) => r.id === winner.id);
   return index >= 0 ? { index, rule: winner } : null;
 }
 
@@ -40,8 +41,9 @@ export function getEvaluationPath(rules: Rule[], url: string, method: string): E
   const steps: EvalStep[] = [];
   const m = normalizeMethod(method || "GET");
   const u = url || "";
-  for (let i = 0; i < rules.length; i++) {
-    const r = rules[i];
+  const active = rules.filter(r => r.enabled !== false);
+  for (let i = 0; i < active.length; i++) {
+    const r = active[i];
     const idx = i + 1;
     const methodOk = methodCovers(r.method, m);
     if (!methodOk) { steps.push({ idx, methodOk, patternOk: false }); continue; }
@@ -61,4 +63,3 @@ export function getEvaluationPath(rules: Rule[], url: string, method: string): E
   }
   return steps;
 }
-

@@ -57,6 +57,12 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 - [x] Rules actions icon‑only (Edit/Delete) with visually‑hidden labels
 - [x] Help tooltip icon for rules ordering next to “Current rules”
 
+### Rules Table polish (next)
+
+- [ ] Conflict badges: replace "Never matches" / "May not match" text with icon-only badges and keep details in a tooltip/popover.
+- [ ] Columns: move Method before URL / Path; set a fixed width for method badges sufficient for "DELETE".
+- [ ] Delay column: rename header to "Delay (ms)"; in rows, display just the number (no "ms" suffix).
+
 ## QA & Validation
 
 - [ ] Fresh install: create project, add rules, verify throttling
@@ -239,12 +245,12 @@ Prevent accidental deletions by confirming intent before removing a rule.
 
 Allow turning individual rules on/off without deleting them. Disabled rules should be ignored by matching logic.
 
-- [ ] Extend `Rule` type with `enabled?: boolean` (default true)
-- [ ] Migration: on load, treat missing `enabled` as true (no storage rewrite required initially)
-- [ ] UI: add a toggle column after Actions to enable/disable each rule
-- [ ] Visual cue for disabled rules (e.g., muted row or badge)
-- [ ] Matching logic: update `inpage.ts` and `content.ts` matchers to skip disabled rules
-- [ ] Bridge payload remains the same list; rules with `enabled=false` are still sent but ignored by matchers
+- [x] Extend `Rule` type with `enabled?: boolean` (default true)
+- [x] Migration: treat missing `enabled` as true (no storage rewrite needed)
+- [x] UI: add a toggle column to enable/disable each rule
+- [x] Visual cue for disabled rules (muted row)
+- [x] Matching logic: update in‑page and content matchers to skip disabled rules
+- [x] Bridge payload remains the same list; rules with `enabled=false` are sent but ignored by matchers
 
 ## Background Module Refactor
 
