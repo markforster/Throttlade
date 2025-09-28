@@ -17,13 +17,18 @@
   z-index: 1019; /* just under .navbar's 1020 */
 }
 
-/* Rules table layout: URL/Path column expands, others stay compact */
-.rules-table th:first-child,
-.rules-table td:first-child {
+/* Rules table layout: URL/Path column (2nd col) expands, index stays minimal */
+.rules-table th:nth-child(2),
+.rules-table td:nth-child(2) {
   width: 100%;
 }
-.rules-table th:not(:first-child),
-.rules-table td:not(:first-child) {
+.rules-table th.col-index,
+.rules-table td.col-index {
+  width: 1%;
+  white-space: nowrap;
+}
+.rules-table th:not(:nth-child(2)),
+.rules-table td:not(:nth-child(2)) {
   white-space: nowrap;
 }
 
@@ -47,9 +52,11 @@
 }
 
 /* Manage Order modal sizing + list appearance */
-.manage-order-modal .modal-dialog {
+.modal-dialog.manage-order-modal {
   /* Wider modal: cap by viewport width; comfortably wide for content */
   --bs-modal-width: min(90vw, 60rem);
+  /* Enforce a minimum comfortable width (~720px) on larger screens */
+  min-width: 45rem;
   /* Top/bottom breathing room using viewport-aware clamp */
   --bs-modal-margin: clamp(3em, 8vh, 5em);
 }

@@ -26,6 +26,8 @@ import NavBar from "../NavBar";
 import ProjectDropdown from "../ProjectDropdown";
 import AddProjectButton from "../buttons/AddProjectButton";
 import DeleteProjectButton from "../buttons/DeleteProjectButton";
+import CloneProjectButton from "../buttons/CloneProjectButton";
+import CloneProjectModal from "../modals/CloneProjectModal";
 
 
 function Dashboard() {
@@ -37,11 +39,14 @@ function Dashboard() {
 
   const [showAdd, setShowAdd] = React.useState(false);
   const [showDelete, setShowDelete] = React.useState(false);
+  const [showClone, setShowClone] = React.useState(false);
   const openAdd = () => { setShowAdd(true); };
   const closeAdd = () => setShowAdd(false);
 
   const requestDeleteProject = () => setShowDelete(true);
   const closeDelete = () => setShowDelete(false);
+  const requestCloneProject = () => setShowClone(true);
+  const closeClone = () => setShowClone(false);
 
   const confirmDeleteProject = async () => {
     if (!currentId) return;
@@ -126,6 +131,10 @@ function Dashboard() {
 
           <div className="d-flex align-items-center gap-2">
             <ProjectDropdown setProjectEnabled={setProjectEnabled} />
+            <CloneProjectButton
+              requestClone={requestCloneProject}
+              disabled={!currentId}
+            />
             <DeleteProjectButton
               requestDeleteProject={requestDeleteProject}
               currentId={currentId}
@@ -135,6 +144,12 @@ function Dashboard() {
       </div>
 
       <ProjectModal showAdd={showAdd} closeAdd={closeAdd} />
+      <CloneProjectModal
+        show={showClone}
+        source={projects.find((p) => p.id === currentId) || null}
+        projects={projects}
+        onClose={closeClone}
+      />
 
       <AddRuleModal
         show={showAddRule}

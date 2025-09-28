@@ -14,6 +14,7 @@ import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAster
 
 import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
+import { analyzeConflicts, type RuleConflict } from "../../utils/rules/analyze";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
@@ -35,6 +36,24 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
       return selectedMethods.has(method);
     });
   }, [rules, selectedMethods]);
+
+  const report = React.useMemo(() => analyzeConflicts(rules), [rules]);
+  const renderConflictBadge = (conflict?: RuleConflict, ruleId?: string) => {
+    if (!conflict) return null;
+    const hasDef = conflict.definiteBlockers.length > 0;
+    const hasPos = !hasDef && conflict.possibleBlockers.length > 0;
+    if (!hasDef && !hasPos) return null;
+    const label = hasDef ? "Never matches" : "May not match";
+    const variant = hasDef ? "danger" : "warning";
+    const reason = conflict.reasons[0];
+    const tip = reason ? `${label} — blocked by #${reason.blockerIndex + 1}. ${reason.detail}` : label;
+    const overlay = (<Tooltip id={`tt-row-${ruleId}`}>{tip}</Tooltip>);
+    return (
+      <OverlayTrigger placement="top" overlay={overlay} delay={{ show: 150, hide: 0 }}>
+        <Badge bg={variant} className="me-2" title={label} aria-label={label}>{label}</Badge>
+      </OverlayTrigger>
+    );
+  };
 
   const toggleMethod = (method: string, nextChecked: boolean) => {
     setSelectedMethods((prev) => {
@@ -131,6 +150,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
           <Table striped bordered hover responsive size="sm" className="mb-0 rules-table">
             <thead>
               <tr>
+                <th scope="col" className="text-nowrap col-index" aria-label="Order"></th>
                 <th scope="col" className="w-100">URL / Path</th>
                 <th scope="col" className="text-nowrap">Method</th>
                 <th scope="col" className="text-nowrap">Match Mode</th>
@@ -139,9 +159,17 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
               </tr>
             </thead>
             <tbody>
-              {filteredRules.map((rule) => (
+              {filteredRules.map((rule, index) => (
                 <tr key={rule.id}>
-                  <td className="align-middle w-100"><span className="fw-semibold">{rule.pattern}</span></td>
+                  <td className="text-nowrap col-index">
+                    <span className="fw-semibold">#{index + 1}</span>
+                  </td>
+                  <td className="align-middle w-100">
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="fw-semibold">{rule.pattern}</span>
+                      <span className="ms-auto">{renderConflictBadge(report.byRuleId[rule.id], rule.id)}</span>
+                    </div>
+                  </td>
                   <td className="align-middle text-nowrap">
                     <Badge bg={methodVariant(rule.method)}>
                       {methodIcon(rule.method) ? (
@@ -175,14 +203,14 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
               ))}
               {rules.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-4">
+                  <td colSpan={6} className="text-center text-muted py-4">
                     No rules yet. Click "Add rule" to create one.
                   </td>
                 </tr>
               )}
               {rules.length > 0 && filteredRules.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-muted py-4">
+                  <td colSpan={6} className="text-center text-muted py-4">
                     No rules match the selected filters.
                   </td>
                 </tr>

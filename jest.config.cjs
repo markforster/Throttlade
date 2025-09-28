@@ -1,4 +1,8 @@
 /** @type {import('jest').Config} */
+const enableCoverage = process.env.JEST_COVERAGE === '1';
+const enableHtmlReport = process.env.JEST_HTML_REPORT === '1';
+
+/** @type {import('jest').Config} */
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "jsdom",
@@ -11,8 +15,8 @@ module.exports = {
   setupFilesAfterEnv: ["<rootDir>/tests/setupTests.ts"],
   clearMocks: true,
   watchman: false,
-  // Coverage configuration
-  collectCoverage: true,
+  // Coverage configuration (enabled via env)
+  collectCoverage: enableCoverage,
   coverageDirectory: "<rootDir>/reports/coverage",
   coverageReporters: ["text", "lcov", "html"],
   collectCoverageFrom: [
@@ -24,17 +28,19 @@ module.exports = {
     "<rootDir>/tests/",
     "<rootDir>/.*/__mocks__/",
   ],
-  // HTML test result reporter
-  reporters: [
-    "default",
-    [
-      "jest-html-reporters",
-      {
-        publicPath: "<rootDir>/reports/jest",
-        filename: "index.html",
-        expand: true,
-        pageTitle: "Jest Test Report",
-      },
-    ],
-  ],
+  // Reporters: default + optional HTML reporter controlled by env
+  reporters: enableHtmlReport
+    ? [
+        "default",
+        [
+          "jest-html-reporters",
+          {
+            publicPath: "<rootDir>/reports/jest",
+            filename: "index.html",
+            expand: true,
+            pageTitle: "Jest Test Report",
+          },
+        ],
+      ]
+    : ["default"],
 };

@@ -24,10 +24,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
+      - name: Run tests (fast)
         env:
           CI: true
         run: npm test -- --ci
+
+      - name: Run coverage
+        env:
+          CI: true
+        run: npm run test:coverage -- --ci
+
+      - name: Generate HTML test report
+        env:
+          CI: true
+        run: npm run test:report -- --ci
 
       - name: Upload coverage HTML
         if: always()
@@ -55,4 +65,3 @@ jobs:
           path: reports/coverage/lcov.info
           if-no-files-found: warn
           retention-days: 14
-
