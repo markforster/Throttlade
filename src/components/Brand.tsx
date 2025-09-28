@@ -1,6 +1,6 @@
 import { Navbar } from "react-bootstrap";
 
-const LOGO_SIZE = 92;
+const LOGO_SIZE = 48;
 
 
 export default function Brand() {
