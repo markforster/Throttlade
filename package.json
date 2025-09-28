@@ -28,7 +28,8 @@
     "sync:version": "node scripts/sync-version.mjs",
     "version": "node scripts/sync-version.mjs && git add manifest.json",
     "serve:demo": "http-server demo -p 5500 -c-1",
-    "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css"
+    "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css",
+    "bundle": "npm run sync:version && npm run build:all && mkdir -p builds && test -f dist/manifest.json && cd dist && zip -X -r ../builds/throttlade-$npm_package_version.zip . -x '**/*.map' '**/.DS_Store'"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.12",
