@@ -74,7 +74,7 @@ function SortableRuleItem({
   return (
     <ListGroup.Item ref={setNodeRef} style={style} className="d-flex align-items-center justify-content-between gap-2">
       <div className="d-flex align-items-center gap-2 flex-wrap me-auto">
-        <span className="fw-semibold text-truncate">{rule.pattern}</span>
+        <span>#{index + 1}</span><span className="fw-semibold text-truncate">{rule.pattern}</span>
       </div>
       <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
         {conflictBadge}
