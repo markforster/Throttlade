@@ -37,7 +37,8 @@ Projects let you keep separate sets of rules (e.g., Localhost, Staging, Prod).
 
 Rules are evaluated top‑down; the first match wins. New rules are added at the top.
 
-Header actions (top‑right of the Rules tab):
+Header actions/search (top of the Rules tab):
+- Search box: Filter rules by pattern, method (GET/POST/Any), or match mode (Regex/Wildcard). Case-insensitive; supports phrases with quotes and exclusions with a leading `-` (e.g., `-regex`).
 - Manage order: Opens a drag‑and‑drop modal to reorder rules. See Ordering below.
 - Filter by method: Funnel icon opens a menu with checkboxes for GET/POST/PUT/PATCH/DELETE and Clear / Select all.
 - Add rule: Opens the Add/Edit modal.
@@ -78,6 +79,7 @@ Deleting a rule:
 
 ### Filtering Rules
 
+- Use the search box to filter as you type. Multiple words act as AND; wrap phrases in quotes (`"/api users"`). Add `-term` to exclude matches (e.g., `-regex`).
 - Click the funnel icon to filter by one or more HTTP methods.
 - Use Clear to remove filters, or Select all to quickly include common methods.
 - If filters hide all rows, the table explains there are no rules matching the selected filters.
@@ -107,4 +109,3 @@ Observability into what the extension is doing.
 - Specific before general: Put more specific patterns (or stricter methods) above broader ones. The analyzer highlights conflicts to help you avoid accidental shadowing.
 - Global vs. Project: Both must be enabled for throttling to occur—Global enable plus the selected project’s enable.
 - Testing variations: Use Clone to branch a rule set, experiment safely, and keep your baseline intact.
-

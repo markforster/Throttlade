@@ -32,6 +32,14 @@
   white-space: nowrap;
 }
 
+/* Search input sizing within Rules tab header */
+.search-input-group {
+  flex: 0 0 200px;
+}
+.search-input-group .form-control {
+  color: #000 !important;
+}
+
 /* Dropdown: suppress ALL hover/active color changes (bg + text) */
 .dropdown-menu .dropdown-item:hover,
 .dropdown-menu .dropdown-item:focus,

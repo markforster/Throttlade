@@ -10,12 +10,14 @@ import {
   Table,
   Tooltip,
   Form as BsForm,
+  InputGroup,
 } from "react-bootstrap";
-import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk } from "react-bootstrap-icons";
+import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk, XCircle } from "react-bootstrap-icons";
 
 import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
 import { analyzeConflicts, type RuleConflict } from "../../utils/rules/analyze";
+import { parseSearchTokens, matchesSearch } from "./RulesTab.search";
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
@@ -30,14 +32,33 @@ type RulesTabProps = {
 
 export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete, onManageOrder, onReorderRules }: RulesTabProps) {
   const [selectedMethods, setSelectedMethods] = React.useState<Set<string>>(new Set());
+  const [searchText, setSearchText] = React.useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState<string>("");
+
+  React.useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedSearch(searchText), 150);
+    return () => window.clearTimeout(handle);
+  }, [searchText]);
+
+  const parsedTokens = React.useMemo(() => parseSearchTokens(debouncedSearch), [debouncedSearch]);
+
+  const indexLookup = React.useMemo(() => {
+    const lookup = new Map<string, number>();
+    rules.forEach((rule, idx) => lookup.set(rule.id, idx));
+    return lookup;
+  }, [rules]);
 
   const filteredRules = React.useMemo(() => {
-    if (selectedMethods.size === 0) return rules;
-    return rules.filter((r) => {
-      const method = (r.method || "GET").toUpperCase();
-      return selectedMethods.has(method);
-    });
-  }, [rules, selectedMethods]);
+    let list = rules;
+    if (selectedMethods.size > 0) {
+      list = list.filter((r) => {
+        const method = (r.method || "GET").toUpperCase();
+        return selectedMethods.has(method);
+      });
+    }
+    if (parsedTokens.length === 0) return list;
+    return list.filter((r) => matchesSearch(r, parsedTokens));
+  }, [rules, selectedMethods, parsedTokens]);
 
   const report = React.useMemo(() => {
     try {
@@ -111,7 +132,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
       <Card.Body>
         <Stack gap={3}>
           <div className="d-flex align-items-center justify-content-between">
-            <Card.Title className="h5 mb-0 d-flex align-items-center gap-2">
+            <Card.Title className="h6 mb-0 d-flex align-items-center gap-2 flex-grow-1">
               <OverlayTrigger
                 placement="right"
                 overlay={
@@ -122,7 +143,24 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                   <QuestionCircle size={16} />
                 </span>
               </OverlayTrigger>
-              Current rules
+              <InputGroup size="sm" className="search-input-group">
+                <BsForm.Control
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  placeholder="Search rules (pattern, method, mode)"
+                  aria-label="Search rules"
+                />
+                {searchText ? (
+                  <Button
+                    variant="outline-secondary"
+                    onClick={() => setSearchText("")}
+                    aria-label="Clear search"
+                  >
+                    <XCircle size={16} />
+                  </Button>
+                ) : null}
+              </InputGroup>
+              <span className="text-muted small">{filteredRules.length} of {rules.length}</span>
             </Card.Title>
             <div className="d-flex align-items-center gap-2">
               <Button
@@ -196,7 +234,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
               {filteredRules.map((rule, index) => (
                 <tr key={rule.id} className={rule.enabled === false ? "text-muted" : undefined}>
                   <td className="text-nowrap col-index">
-                    <span className="fw-semibold">#{index + 1}</span>
+                    <span className="fw-semibold">#{(indexLookup.get(rule.id) ?? index) + 1}</span>
                   </td>
                   <td className="align-middle w-100">
                     <div className="d-flex align-items-center gap-2">

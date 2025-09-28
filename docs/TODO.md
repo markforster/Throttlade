@@ -184,14 +184,14 @@ These features add richer control to the rules list. They should be additive and
 
 ### Free‑Text Search Filtering
 
-Provide a search box in place of the “Current rules” title (with a clear X button) that filters rules as the user types. Matching is simple “contains” on pattern (and optionally method/mode), case‑insensitive. Clearing restores full list.
+Provide a search box in place of the “Current rules” title (with a clear X button) that filters rules as the user types. Matching is case‑insensitive and runs across pattern, method label, and match mode. Clearing restores the full list.
 
-- [ ] Replace title area with an input group (React Bootstrap `InputGroup` + `Form.Control`) and a clear button (X)
-- [ ] Add `searchQuery` state and debounce updates (e.g., 150–250ms) for performance
-- [ ] Implement case‑insensitive “contains” match on pattern (and optionally include method/match mode text)
-- [ ] Combine with existing method filters (AND logic): first filter by methods, then by search text
-- [ ] Preserve empty states (“no rules”, “no matches”) with search context
-- [ ] A11y: add `aria-label`/placeholder; Esc clears or blurs input
+- [x] Replace title area with an input group (`InputGroup` + `Form.Control`) and a clear button.
+- [x] Added debounced `searchText` state (150 ms) for responsive filtering.
+- [x] Implemented case‑insensitive matching on pattern, method, and match mode; supports quoted phrases and leading `-` for negation.
+- [x] Search combines with existing method filters (AND semantics).
+- [x] Preserve empty states; show `n of N` counter next to the input.
+- [x] A11y: labelled control, clear button with accessible name.
 
 ### Grouping (by Method or Match Mode)
 
