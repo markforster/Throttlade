@@ -12,7 +12,7 @@ import {
   Form as BsForm,
   InputGroup,
 } from "react-bootstrap";
-import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk, XCircle } from "react-bootstrap-icons";
+import { Plus, FunnelFill, QuestionCircle, Pencil, Trash3, Asterisk, BracesAsterisk, XCircle, ExclamationOctagon, ExclamationTriangle } from "react-bootstrap-icons";
 
 import type { Rule } from "../../types/types";
 import { methodVariant, methodIcon, matchModeBadgeClasses } from "../../utils/rules-ui";
@@ -94,7 +94,14 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
     return (
       <OverlayTrigger placement="top" overlay={overlay} delay={{ show: 150, hide: 0 }}>
         <div className="d-inline-flex align-items-center gap-2">
-          <Badge bg={variant} className="me-2" title={label} aria-label={label}>{label}</Badge>
+          <Badge
+            bg={variant}
+            className="d-inline-flex align-items-center justify-content-center p-1 conflict-badge-icon"
+            title={label}
+            aria-label={label}
+          >
+            {hasDef ? <ExclamationOctagon size={14} className="conflict-icon-outline" /> : <ExclamationTriangle size={14} className="conflict-icon-outline" />}
+          </Badge>
           {reason && onReorderRules ? (
             <Button
               size="sm"
@@ -222,10 +229,10 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
             <thead>
               <tr>
                 <th scope="col" className="text-nowrap col-index" aria-label="Order"></th>
+                <th scope="col" className="text-nowrap col-method">Method</th>
                 <th scope="col" className="w-100">URL / Path</th>
-                <th scope="col" className="text-nowrap">Method</th>
                 <th scope="col" className="text-nowrap">Match Mode</th>
-                <th scope="col" className="text-end text-nowrap">Delay</th>
+                <th scope="col" className="text-end text-nowrap">Delay (ms)</th>
                 <th scope="col" className="text-nowrap text-end">Enabled</th>
                 <th scope="col" className="text-end text-nowrap">Actions</th>
               </tr>
@@ -236,19 +243,19 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                   <td className="text-nowrap col-index">
                     <span className="fw-semibold">#{(indexLookup.get(rule.id) ?? index) + 1}</span>
                   </td>
-                  <td className="align-middle w-100">
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="fw-semibold">{rule.pattern}</span>
-                      <span className="ms-auto">{rule.enabled === false ? null : renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
-                    </div>
-                  </td>
-                  <td className="align-middle text-nowrap">
-                    <Badge bg={methodVariant(rule.method)}>
+                  <td className="align-middle text-nowrap col-method">
+                    <Badge bg={methodVariant(rule.method)} className="method-badge text-uppercase">
                       {methodIcon(rule.method) ? (
                         <span className="me-1" aria-hidden="true">{methodIcon(rule.method)}</span>
                       ) : null}
                       {rule.method || "Any"}
                     </Badge>
+                  </td>
+                  <td className="align-middle w-100">
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="fw-semibold">{rule.pattern}</span>
+                      <span className="ms-auto">{rule.enabled === false ? null : renderConflictBadge(report ? report.byRuleId[rule.id] : undefined, rule.id, rule)}</span>
+                    </div>
                   </td>
                   <td className="align-middle text-nowrap">
                     <Badge className={matchModeBadgeClasses(!!rule.isRegex)}>
@@ -258,7 +265,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
                       {rule.isRegex ? "Regex" : "Wildcard"}
                     </Badge>
                   </td>
-                  <td className="text-end align-middle text-nowrap">{rule.delayMs} ms</td>
+                  <td className="text-end align-middle text-nowrap">{rule.delayMs}</td>
                   <td className="text-end align-middle text-nowrap">
                     <BsForm.Check
                       type="switch"

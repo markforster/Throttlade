@@ -17,9 +17,9 @@
   z-index: 1019; /* just under .navbar's 1020 */
 }
 
-/* Rules table layout: URL/Path column (2nd col) expands, index stays minimal */
-.rules-table th:nth-child(2),
-.rules-table td:nth-child(2) {
+/* Rules table layout: URL/Path column (3rd col) expands, index stays minimal */
+.rules-table th:nth-child(3),
+.rules-table td:nth-child(3) {
   width: 100%;
 }
 .rules-table th.col-index,
@@ -27,9 +27,38 @@
   width: 1%;
   white-space: nowrap;
 }
-.rules-table th:not(:nth-child(2)),
-.rules-table td:not(:nth-child(2)) {
+.rules-table th:not(:nth-child(3)),
+.rules-table td:not(:nth-child(3)) {
   white-space: nowrap;
+}
+
+/* Method column: keep compact width and fixed-size badge */
+.rules-table th.col-method,
+.rules-table td.col-method {
+  width: 1%;
+  white-space: nowrap;
+}
+.method-badge {
+  display: inline-block;
+  min-width: 72px; /* fits DELETE */
+  text-align: center;
+}
+
+/* Conflict badge icon: tighter size */
+.conflict-badge-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Make conflict icons outlined (no fill), white strokes on colored badges */
+.conflict-icon-outline {
+  color: #fff !important;
+  fill: none !important;
+}
+.conflict-icon-outline path {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2px;
 }
 
 /* Search input sizing within Rules tab header */
@@ -37,6 +66,17 @@
   flex: 0 0 200px;
 }
 .search-input-group .form-control {
+  color: #000 !important;
+}
+
+/* Global text color fix: ensure readable black text across headings, labels, inputs */
+:root,
+[data-bs-theme="light"] {
+  --bs-body-color: #000 !important;
+  --bs-heading-color: #000 !important;
+}
+
+body, label, .form-label, .form-control, .form-select, .form-check-label {
   color: #000 !important;
 }
 
