@@ -35,6 +35,7 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
   const [formValues, setFormValues] = React.useState<RuleFormValues>(createEmptyFormValues());
   const [previewUrl, setPreviewUrl] = React.useState<string>("");
   const [previewMethod, setPreviewMethod] = React.useState<string>("GET");
+  const [showEvalSteps, setShowEvalSteps] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     if (editingRule)
@@ -50,6 +51,30 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
       setFormValues(createEmptyFormValues());
     }
   }, [editingRule, show]);
+
+  // Persist preview inputs across modal openings within the session
+  const PREVIEW_URL_KEY = "THROTTLR_PREVIEW_URL";
+  const PREVIEW_METHOD_KEY = "THROTTLR_PREVIEW_METHOD";
+
+  React.useEffect(() => {
+    if (!show) return;
+    try {
+      const savedUrl = sessionStorage.getItem(PREVIEW_URL_KEY);
+      const savedMethod = sessionStorage.getItem(PREVIEW_METHOD_KEY);
+      if (savedUrl) setPreviewUrl(savedUrl);
+      if (savedMethod) setPreviewMethod(savedMethod);
+    } catch {
+      // ignore storage access errors
+    }
+  }, [show]);
+
+  React.useEffect(() => {
+    try { sessionStorage.setItem(PREVIEW_URL_KEY, previewUrl); } catch { /* ignore */ }
+  }, [previewUrl]);
+
+  React.useEffect(() => {
+    try { sessionStorage.setItem(PREVIEW_METHOD_KEY, previewMethod); } catch { /* ignore */ }
+  }, [previewMethod]);
 
   const isPatternEmpty = !formValues.pattern.trim();
   const isRegexInvalid = React.useMemo(() => {
@@ -132,6 +157,42 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
     if (!match) return null;
     const index = simulatedList.findIndex((r) => r.id === match.id);
     return { index, rule: match };
+  }, [previewUrl, previewMethod, simulatedList]);
+
+  const evaluationSteps = React.useMemo(() => {
+    const steps: { idx: number; text: string; win?: boolean }[] = [];
+    const url = previewUrl.trim();
+    if (!url) return steps;
+    const m = (previewMethod || "GET").toUpperCase();
+    for (let i = 0; i < simulatedList.length; i++) {
+      const r = simulatedList[i];
+      const idx = i + 1;
+      const methodLabel = r.method ? r.method.toUpperCase() : "Any";
+      if (r.method && r.method.toUpperCase() !== m) {
+        steps.push({ idx, text: `#${idx}: method mismatch (${methodLabel} ≠ ${m}) → skip` });
+        continue;
+      }
+      if (r.isRegex) {
+        try {
+          const re = new RegExp(r.pattern);
+          if (re.test(url)) {
+            steps.push({ idx, text: `#${idx}: regex matches → WIN`, win: true });
+            break;
+          }
+          steps.push({ idx, text: `#${idx}: regex no match → skip` });
+        } catch {
+          steps.push({ idx, text: `#${idx}: invalid regex → skip` });
+        }
+      } else {
+        const lit = r.pattern || "";
+        if (url.includes(lit)) {
+          steps.push({ idx, text: `#${idx}: includes '${lit}' → WIN`, win: true });
+          break;
+        }
+        steps.push({ idx, text: `#${idx}: does not include '${lit}' → skip` });
+      }
+    }
+    return steps;
   }, [previewUrl, previewMethod, simulatedList]);
 
   const handleChange =
@@ -268,7 +329,7 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
                       <strong>{conflictLabel}.</strong>{" "}
                       {blockerIndex != null && blockerRule ? (
                         <>
-                          Blocked by <strong>#{blockerIndex + 1}</strong>{" ":""}
+                          Blocked by <strong>#{blockerIndex + 1}</strong>{" "}
                           <span className="fw-semibold">{blockerRule.pattern}</span>{" "}
                           <Badge bg={methodVariant(blockerRule.method)}>{blockerRule.method || "Any"}</Badge>
                           {conflictReason ? <span>{" — "}{conflictReason}</span> : null}
@@ -320,6 +381,22 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
                   ) : (
                     <span>No rule would match this request.</span>
                   )}
+                  <div className="mt-1">
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 align-baseline"
+                      onClick={() => setShowEvalSteps((s) => !s)}
+                    >
+                      {showEvalSteps ? "Hide evaluation steps" : "Show evaluation steps"}
+                    </button>
+                  </div>
+                  {showEvalSteps && evaluationSteps.length > 0 ? (
+                    <ul className="mt-1 mb-0 ps-3">
+                      {evaluationSteps.map((s) => (
+                        <li key={s.idx} className={s.win ? "text-success" : undefined}>{s.text}</li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
             </Col>
