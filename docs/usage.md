@@ -5,6 +5,15 @@ This guide walks through the Options dashboard UI, global enable, projects, tabs
 - Open the dashboard from the extension’s Options, or click the toolbar popup and press “Open dashboard”.
 - The dashboard has a top navbar, a project control bar, and three tabs: Rules, Requests, Logs.
 
+## Quick Start
+
+1) Click the toolbar icon to open the popup. Toggle “Enable throttling” on.
+2) Click “Open dashboard” in the popup to launch the Options dashboard.
+3) (Optional) Add a project for your environment (e.g., Localhost, Staging) and make sure it’s enabled.
+4) Go to the Rules tab and click “Add rule”. Enter a URL or path pattern, choose a method (or Any), and set a delay in ms. Save.
+5) Ensure the Global toggle (top navbar) and your selected project are enabled.
+6) Visit your site and trigger a request that matches your rule. Watch progress in the Requests tab; logs appear in the Logs tab.
+
 ## What You’ll See
 
 - Navbar (top): a status badge (Enabled/Disabled) and a global on/off switch.
