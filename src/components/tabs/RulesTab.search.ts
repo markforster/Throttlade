@@ -8,7 +8,7 @@ export type SearchToken = {
 export function parseSearchTokens(input: string): SearchToken[] {
   if (!input.trim()) return [];
   const tokens: SearchToken[] = [];
-  const regex = /"([^"]+)"|(\S+)/g;
+  const regex = /"([^"]*)"|(\S+)/g;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(input)) !== null) {
     const raw = match[1] ?? match[2] ?? "";
@@ -46,4 +46,3 @@ function buildHaystack(rule: Rule): string[] {
   parts.push(mode);
   return parts;
 }
-
