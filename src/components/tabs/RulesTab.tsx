@@ -62,7 +62,8 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
 
   const filteredRules = React.useMemo(() => {
     let list = rules;
-    if (selectedMethods.size > 0) {
+    if (selectedMethods.size > 0)
+    {
       list = list.filter((r) => {
         const method = (r.method || "GET").toUpperCase();
         return selectedMethods.has(method);
@@ -73,9 +74,11 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
   }, [rules, selectedMethods, parsedTokens]);
 
   const report = React.useMemo(() => {
-    try {
+    try
+    {
       return analyzeConflicts(rules);
-    } catch {
+    } catch
+    {
       return null;
     }
   }, [rules]);
@@ -172,7 +175,7 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
           <span className="fw-semibold">#{originalIndex}</span>
         </td>
         <td className="align-middle text-nowrap col-method">
-          <Badge bg={methodVariant(rule.method)} className="method-badge text-uppercase">
+          <Badge bg={methodVariant(rule.method)} className="method-badge text-uppercase" title={rule.method}>
             {methodIcon(rule.method) ? (
               <span className="me-1" aria-hidden="true">{methodIcon(rule.method)}</span>
             ) : null}
@@ -238,6 +241,8 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
       else map.set(key, [rule]);
     });
 
+    console.log('>>>filteredRules', filteredRules);
+
     const baseOrder = groupBy === "method" ? Array.from(METHOD_GROUP_ORDER) : Array.from(MODE_GROUP_ORDER);
     const keys = Array.from(map.keys());
     const orderedKeys: string[] = [];
@@ -253,7 +258,8 @@ export default function RulesTab({ rules, onAddRule, onEditRule, onRequestDelete
       const rulesInGroup = (map.get(key) ?? []).slice();
       rulesInGroup.sort((a, b) => (indexLookup.get(a.id) ?? 0) - (indexLookup.get(b.id) ?? 0));
 
-      if (groupBy === "method") {
+      if (groupBy === "method")
+      {
         const methodKey = key === "ANY" ? undefined : key;
         const badge = (
           <Badge bg={methodVariant(methodKey)} className="method-badge text-uppercase">

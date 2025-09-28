@@ -59,12 +59,14 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
 
   React.useEffect(() => {
     if (!show) return;
-    try {
+    try
+    {
       const savedUrl = sessionStorage.getItem(PREVIEW_URL_KEY);
       const savedMethod = sessionStorage.getItem(PREVIEW_METHOD_KEY);
       if (savedUrl) setPreviewUrl(savedUrl);
       if (savedMethod) setPreviewMethod(savedMethod);
-    } catch {
+    } catch
+    {
       // ignore storage access errors
     }
   }, [show]);
@@ -77,16 +79,24 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
     try { sessionStorage.setItem(PREVIEW_METHOD_KEY, previewMethod); } catch { /* ignore */ }
   }, [previewMethod]);
 
+  React.useEffect(() => {
+    if (!formValues.method) return;
+    if (previewMethod === formValues.method) return;
+    setPreviewMethod(formValues.method);
+  }, [formValues.method, previewMethod]);
+
   const isPatternEmpty = !formValues.pattern.trim();
   const isRegexInvalid = React.useMemo(() => {
     if (!formValues.isRegex) return false;
     const pat = formValues.pattern;
     if (!pat.trim()) return false; // handled by required
-    try {
+    try
+    {
       // eslint-disable-next-line no-new
       new RegExp(pat);
       return false;
-    } catch {
+    } catch
+    {
       return true;
     }
   }, [formValues.isRegex, formValues.pattern]);
@@ -101,7 +111,8 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
       delayMs: Math.max(0, Math.round(formValues.delayMs || 0)),
       method: formValues.method,
     };
-    if (editingRule) {
+    if (editingRule)
+    {
       return rules.map((r) => (r.id === editingRule.id ? tempRule : r));
     }
     // New rules appear first in current UX
@@ -109,9 +120,11 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
   }, [rules, formValues, editingRule]);
 
   const conflictReport: ConflictReport | null = React.useMemo(() => {
-    try {
+    try
+    {
       return analyzeConflicts(simulatedList);
-    } catch {
+    } catch
+    {
       return null;
     }
   }, [simulatedList]);
@@ -208,21 +221,21 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
             <Col xs={12}>
               <Form.Group controlId="modal-rule-pattern">
                 <Form.Label>Pattern</Form.Label>
-              <Form.Control
-                name="pattern"
-                placeholder="/api/* or ^https://api\\.site\\.com"
-                required
-                value={formValues.pattern}
-                onChange={handleChange("pattern")}
-                isInvalid={isRegexInvalid}
-              />
-              {formValues.isRegex ? (
-                <Form.Control.Feedback type="invalid">
-                  Invalid regular expression. Please fix the pattern.
-                </Form.Control.Feedback>
-              ) : null}
-            </Form.Group>
-          </Col>
+                <Form.Control
+                  name="pattern"
+                  placeholder="/api/* or ^https://api\\.site\\.com"
+                  required
+                  value={formValues.pattern}
+                  onChange={handleChange("pattern")}
+                  isInvalid={isRegexInvalid}
+                />
+                {formValues.isRegex ? (
+                  <Form.Control.Feedback type="invalid">
+                    Invalid regular expression. Please fix the pattern.
+                  </Form.Control.Feedback>
+                ) : null}
+              </Form.Group>
+            </Col>
 
             <Col md={4} xs={12}>
               <Form.Group controlId="modal-rule-method">
@@ -239,6 +252,9 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
                   <option>PATCH</option>
                   <option>DELETE</option>
                 </Form.Select>
+                <Form.Text className="text-muted">
+                  {formValues.method ? `Matches only ${formValues.method} requests.` : "Leave as Any to cover every HTTP method."}
+                </Form.Text>
               </Form.Group>
             </Col>
 
@@ -316,15 +332,28 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
                     onChange={(e) => setPreviewUrl(e.target.value)}
                   />
                 </Form.Group>
-                <Form.Group style={{ minWidth: 140 }} controlId="preview-method">
-                  <Form.Label className="mb-1">Method</Form.Label>
-                  <Form.Select value={previewMethod} onChange={(e) => setPreviewMethod(e.target.value)}>
+                <Form.Group style={{ minWidth: 160 }} controlId="preview-method" hidden={true}>
+                  <Form.Label className="mb-1">Preview method</Form.Label>
+                  <Form.Select
+
+                    value={formValues.method ?? previewMethod}
+                    onChange={(e) => {
+                      if (formValues.method) return;
+                      setPreviewMethod(e.target.value);
+                    }}
+                    disabled={!!formValues.method}
+                  >
                     <option>GET</option>
                     <option>POST</option>
                     <option>PUT</option>
                     <option>PATCH</option>
                     <option>DELETE</option>
                   </Form.Select>
+                  {formValues.method ? (
+                    <Form.Text className="text-muted">Preview uses the rule method. Change it above to test a different method.</Form.Text>
+                  ) : (
+                    <Form.Text className="text-muted">Preview method is for testing only and is not saved with the rule.</Form.Text>
+                  )}
                 </Form.Group>
               </div>
               {previewUrl.trim() ? (
