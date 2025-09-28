@@ -38,17 +38,18 @@ Projects let you keep separate sets of rules (e.g., Localhost, Staging, Prod).
 Rules are evaluated top‑down; the first match wins. New rules are added at the top.
 
 Header actions/search (top of the Rules tab):
-- Search box: Filter rules by pattern, method (GET/POST/Any), or match mode (Regex/Wildcard). Case-insensitive; supports phrases with quotes and exclusions with a leading `-` (e.g., `-regex`).
+- Search box: Filter rules by free text across pattern, method (GET/POST/Any), and match mode (Regex/Wildcard). Case‑insensitive; supports quoted phrases and exclusions with a leading `-`.
 - Manage order: Opens a drag‑and‑drop modal to reorder rules. See Ordering below.
 - Filter by method: Funnel icon opens a menu with checkboxes for GET/POST/PUT/PATCH/DELETE and Clear / Select all.
 - Add rule: Opens the Add/Edit modal.
 
 Table columns:
-- Order: Row index (e.g., #1, #2). Higher rows have higher priority.
-- URL / Path: The pattern text. Shadowing/conflict badges appear on the right for quick guidance.
-- Method: A colored badge showing the HTTP method (or Any when unspecified).
-- Match Mode: Wildcard or Regex. Wildcard performs a substring match; Regex uses JavaScript RegExp.
-- Delay: Throttle delay in milliseconds (ms).
+- Order: Original rule position (e.g., #1, #2). Higher rows have higher priority. The number reflects the rule’s true order even when filtered.
+- Method: Colored badge showing the HTTP method (or Any when unspecified).
+- URL / Path: The pattern text. Shadowing/conflict icons appear on the right with tooltips.
+- Match Mode: Wildcard or Regex. Wildcard performs a substring/glob match; Regex uses JavaScript RegExp.
+- Delay (ms): Throttle delay (plain number).
+- Enabled: Toggle to activate/deactivate a rule without deleting it.
 - Actions: Edit and Delete buttons.
 
 Conflict badges in the table:
@@ -79,10 +80,28 @@ Deleting a rule:
 
 ### Filtering Rules
 
-- Use the search box to filter as you type. Multiple words act as AND; wrap phrases in quotes (`"/api users"`). Add `-term` to exclude matches (e.g., `-regex`).
+- Use the search box to filter as you type. Multiple words act as AND; wrap phrases in quotes (e.g., `"/api v1"`). Add `-term` to exclude matches (e.g., `-regex`).
 - Click the funnel icon to filter by one or more HTTP methods.
 - Use Clear to remove filters, or Select all to quickly include common methods.
 - If filters hide all rows, the table explains there are no rules matching the selected filters.
+
+### Searching Rules (Free Text)
+
+The search box filters the table as you type. It matches across:
+- Pattern: e.g., typing `api` matches `/api/users`, `https://api.example.com`, etc.
+- Method: typing `get` or `post` matches their method badges; `any` matches rules with no specific method.
+- Match mode: typing `regex` or `wildcard` filters by mode.
+
+Rules for matching:
+- Case‑insensitive contains: `api` matches `API`, `/api`, `myapi`, etc.
+- AND across tokens: `api users` keeps rules that contain both `api` and `users` somewhere in the row.
+- Quoted phrases: `"/api v1"` keeps rules containing that exact phrase.
+- Exclude with `-`: `-regex` hides regex rules; `api -get` keeps rules containing `api` but not method GET.
+- Works with the Method filter: both must pass (method checkboxes first, then search).
+
+Tips:
+- Use the “×” button in the input to clear your search.
+- The small counter next to the input shows how many rows are visible out of the total.
 
 ### Ordering Rules
 
