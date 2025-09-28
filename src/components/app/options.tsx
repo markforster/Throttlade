@@ -157,6 +157,7 @@ function Dashboard() {
         onClose={closeAddRule}
         onSubmit={handleRuleSubmit}
         rules={rules}
+        onReorderRules={(next) => save(next)}
       />
 
       <DeleteProjectModal

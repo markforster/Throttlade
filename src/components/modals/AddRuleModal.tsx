@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Form, Row, Col, Button, Badge, Alert } from "react-bootstrap";
+import { methodVariant } from "../../utils/rules-ui";
 import { Plus, ExclamationTriangleFill } from "react-bootstrap-icons";
 
 import type { Rule } from "../../types/types";
@@ -20,6 +21,7 @@ type AddRuleModalProps = {
   onClose: () => void;
   onSubmit: (values: RuleFormValues) => void;
   rules: Rule[];
+  onReorderRules?: (next: Rule[]) => void;
 };
 
 const createEmptyFormValues = (): RuleFormValues => ({
@@ -29,7 +31,7 @@ const createEmptyFormValues = (): RuleFormValues => ({
   isRegex: false,
 });
 
-export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rules }: AddRuleModalProps) {
+export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rules, onReorderRules }: AddRuleModalProps) {
   const [formValues, setFormValues] = React.useState<RuleFormValues>(createEmptyFormValues());
   const [previewUrl, setPreviewUrl] = React.useState<string>("");
   const [previewMethod, setPreviewMethod] = React.useState<string>("GET");
@@ -98,6 +100,20 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
         : null
     : null;
   const conflictReason = conflict && conflict.reasons[0] ? conflict.reasons[0].detail : null;
+  const blockerIndex = conflict && conflict.reasons[0] ? conflict.reasons[0].blockerIndex : null;
+  const blockerRule = blockerIndex != null ? simulatedList[blockerIndex] : null;
+
+  const moveAboveBlocker = () => {
+    if (!editingRule || blockerIndex == null || !onReorderRules) return;
+    const from = rules.findIndex((r) => r.id === editingRule.id);
+    if (from === -1) return;
+    const to = Math.max(0, Math.min(blockerIndex, rules.length - 1));
+    if (from === to) return;
+    const next = rules.slice();
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onReorderRules(next);
+  };
 
   const firstMatch = React.useMemo(() => {
     const url = previewUrl.trim();
@@ -247,8 +263,26 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
             {conflictLabel ? (
               <Col xs={12}>
                 <Alert variant={conflictLabel === "Never matches" ? "danger" : "warning"} className="py-2 mb-0">
-                  <strong>{conflictLabel}.</strong>{" "}
-                  {conflictReason ? <span>{conflictReason}</span> : null}
+                  <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                    <div>
+                      <strong>{conflictLabel}.</strong>{" "}
+                      {blockerIndex != null && blockerRule ? (
+                        <>
+                          Blocked by <strong>#{blockerIndex + 1}</strong>{" ":""}
+                          <span className="fw-semibold">{blockerRule.pattern}</span>{" "}
+                          <Badge bg={methodVariant(blockerRule.method)}>{blockerRule.method || "Any"}</Badge>
+                          {conflictReason ? <span>{" — "}{conflictReason}</span> : null}
+                        </>
+                      ) : (
+                        conflictReason ? <span>{conflictReason}</span> : null
+                      )}
+                    </div>
+                    {editingRule && onReorderRules && blockerIndex != null ? (
+                      <Button size="sm" variant="outline-secondary" onClick={moveAboveBlocker}>
+                        Move above blocker
+                      </Button>
+                    ) : null}
+                  </div>
                 </Alert>
               </Col>
             ) : null}
