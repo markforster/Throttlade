@@ -24,35 +24,41 @@ Small, verifiable steps to implement conflict detection and UX.
   - [x] Show callout if definite/possible shadowing detected
 - [x] “Preview match” helper:
   - [x] Input URL + method; show which rule would match first (uses current semantics)
- - [x] Regex validation in Add/Edit modal: compile on change; show invalid, disable Save
- - [x] Modal alert: include first blocker info and a “Move above blocker” inline action
- - [x] Persist last preview URL/method for the session (quality of life)
- - [x] Preview “evaluation path” (ordered checks) in compact list
- - [x] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table (plus tests)
+- [x] Regex validation in Add/Edit modal: compile on change; show invalid, disable Save
+- [x] Modal alert: include first blocker info and a “Move above blocker” inline action
+- [x] Persist last preview URL/method for the session (quality of life)
+- [x] Preview “evaluation path” (ordered checks) in compact list
+- [x] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table (plus tests)
 
 ### Phase 2 — Authoring Feedback (Stepwise Plan)
 
-1) Regex validation (low risk)
+1. Regex validation (low risk)
+
 - Add invalid state to Pattern on `new RegExp(pattern)` error; show brief help; disable Save.
 - File: `src/components/modals/AddRuleModal.tsx`
 
-2) Conflict alert details (low risk)
+2. Conflict alert details (low risk)
+
 - Expand alert: “Blocked by #k: <pattern> (Method)”.
 - File: `src/components/modals/AddRuleModal.tsx`
 
-3) Inline “Move above blocker” in modal (medium)
+3. Inline “Move above blocker” in modal (medium)
+
 - Add small button in alert to reorder the simulated list; persist order on Save.
 - Files: `src/components/modals/AddRuleModal.tsx`, `src/components/app/options.tsx`
 
-4) Persist preview inputs (optional)
+4. Persist preview inputs (optional)
+
 - Keep last URL/Method during the session (e.g., sessionStorage).
 - File: `src/components/modals/AddRuleModal.tsx`
 
-5) Shared preview helper + tests (low risk)
+5. Shared preview helper + tests (low risk)
+
 - Extract `getFirstMatch(rules, url, method)` and add unit tests.
 - Files: `src/utils/rules/preview.ts`, `tests/utils/rules/preview.test.ts`
 
-6) Preview “evaluation path” (optional)
+6. Preview “evaluation path” (optional)
+
 - Show ordered checks up to the winner under the Preview section.
 - File: `src/components/modals/AddRuleModal.tsx`
 
@@ -77,9 +83,9 @@ Small, verifiable steps to implement conflict detection and UX.
 
 ## UX/Copy/Styles
 
-- [ ] Badge styles: red (definite), amber (possible), small size
-- [ ] Tooltips: concise reason, include method label and rule index
-- [ ] Accessible labels for icons/buttons; keyboard and focus states
+- [x] Badge styles: red (definite), amber (possible), small size
+- [x] Tooltips: concise reason, include method label and rule index
+- [x] Accessible labels for icons/buttons; keyboard and focus states
 
 ## Wiring Details
 
