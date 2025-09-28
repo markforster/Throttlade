@@ -17,7 +17,7 @@ export function PopupShell() {
   };
 
   return (
-    <Card className="shadow-sm" style={{ width: 280 }}>
+    <Card className="shadow-sm" style={{ width: 280, borderRadius: 0, border: "none" }}>
       <Card.Body>
         <Stack gap={3}>
           <div>

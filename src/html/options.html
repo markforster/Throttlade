@@ -12,9 +12,32 @@
     <link rel="manifest" href="site.webmanifest" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="msapplication-TileColor" content="#2b5797" />
+    <style>
+      body { margin: 0; padding-bottom: 26px; }
+      .dw-footer {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 8px;
+        box-sizing: border-box;
+        background: radial-gradient(ellipse at bottom,#1b2735 0,#090a0f 100%);
+        color: #fff;
+        font-family: "Courier New", Courier, Lucida Sans Typewriter, Lucida Typewriter, monospace;
+        z-index: 9999;
+      }
+      .dw-footer a { color: #fff; text-decoration: none; opacity: 0.9; }
+      .dw-footer a:hover { opacity: 1; text-decoration: underline; }
+      .dw-footer .heart { color: #c33; margin-left: 6px; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <footer class="dw-footer">
+      <a href="https://done-well.co.uk/" target="_blank" rel="noopener noreferrer">Done Well</a> <span class="heart">♥</span>
+    </footer>
     <link rel="stylesheet" href="options.css" />
     <script type="module" src="options.js"></script>
   </body>
