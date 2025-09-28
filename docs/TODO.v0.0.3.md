@@ -40,3 +40,4 @@ This snapshot captures work completed after the v0.0.2 UX pass.
 - Rules table polish: icon‑only conflict badges (outlined), Method column before URL/Path with fixed badge width, Delay header shows "Delay (ms)" and rows show numeric values only.
 - Free‑text search: input in header filtering by pattern/method/mode with quotes and `-` negation; ANDed with method filter.
 - Grouping view: optional “Group by” (None/Method/Match mode) with per-group headers and counts; maintains underlying rule order.
+- Edit project: pencil button + modal to rename the selected project with duplicate protection.

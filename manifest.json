@@ -46,6 +46,15 @@
         "<all_urls>"
       ],
       "js": [
+        "content-bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
         "inpage/inpage.js"
       ],
       "world": "MAIN",

@@ -103,6 +103,7 @@ The options page has been partially modularised. Track remaining cleanup and not
 - [x] AddRuleModal: shared add/edit modal (lives in `src/components/modals/AddRuleModal.tsx`)
 - [x] DeleteRuleModal: confirm dialog for rule deletion
 - [x] Project modals: add/delete project handled in dedicated components
+- [x] Edit project modal: rename existing project with duplicate guard and storage update
 
 ### Hooks (`src/hooks`)
 

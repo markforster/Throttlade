@@ -24,6 +24,7 @@ Projects let you keep separate sets of rules (e.g., Localhost, Staging, Prod).
 - Select: Use the Project dropdown (top bar). Click a name to switch. The selected project’s name appears on the button.
 - Enable/Disable a project: Use the switch next to the project in the dropdown, or the inline switch on the selected project’s button. Disabled projects don’t apply their rules.
 - Add: Click “Add project”, name it (duplicates are prevented), then Save. The new project is enabled and selected.
+- Rename: Click the Edit button (pencil), update the name, then Save. Duplicates are blocked; trimming is applied, and the project stays selected.
 - Clone: Click the Clone button to duplicate the selected project. A suggested name like name_copy is provided; a unique name is required. The clone keeps the source project’s enabled state and rules (with new IDs) and is inserted after the source. Why clone? To back up a working set, test a variation, or let QA tweak rules without losing the baseline.
 - Delete: Click Delete. You’ll be asked to confirm. You can’t delete the only remaining project; if you delete down to none, a Default project is created so the app remains usable.
 

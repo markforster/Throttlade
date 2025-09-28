@@ -26,8 +26,10 @@ import NavBar from "../NavBar";
 import ProjectDropdown from "../ProjectDropdown";
 import AddProjectButton from "../buttons/AddProjectButton";
 import DeleteProjectButton from "../buttons/DeleteProjectButton";
+import EditProjectButton from "../buttons/EditProjectButton";
 import CloneProjectButton from "../buttons/CloneProjectButton";
 import CloneProjectModal from "../modals/CloneProjectModal";
+import EditProjectModal from "../modals/EditProjectModal";
 
 
 function Dashboard() {
@@ -40,6 +42,7 @@ function Dashboard() {
   const [showAdd, setShowAdd] = React.useState(false);
   const [showDelete, setShowDelete] = React.useState(false);
   const [showClone, setShowClone] = React.useState(false);
+  const [showEdit, setShowEdit] = React.useState(false);
   const openAdd = () => { setShowAdd(true); };
   const closeAdd = () => setShowAdd(false);
 
@@ -47,6 +50,8 @@ function Dashboard() {
   const closeDelete = () => setShowDelete(false);
   const requestCloneProject = () => setShowClone(true);
   const closeClone = () => setShowClone(false);
+  const requestEditProject = () => setShowEdit(true);
+  const closeEdit = () => setShowEdit(false);
 
   const confirmDeleteProject = async () => {
     if (!currentId) return;
@@ -123,6 +128,8 @@ function Dashboard() {
   const closeManageOrder = () => setShowManageOrder(false);
   const saveOrder = (next: Rule[]) => { save(next); setShowManageOrder(false); };
 
+  const currentProject = React.useMemo(() => projects.find((p) => p.id === currentId) || null, [projects, currentId]);
+
   return (
     <>
       <NavBar />
@@ -132,6 +139,10 @@ function Dashboard() {
 
           <div className="d-flex align-items-center gap-2">
             <ProjectDropdown setProjectEnabled={setProjectEnabled} />
+            <EditProjectButton
+              requestEditProject={requestEditProject}
+              project={currentProject}
+            />
             <CloneProjectButton
               requestClone={requestCloneProject}
               disabled={!currentId}
@@ -147,9 +158,15 @@ function Dashboard() {
       <ProjectModal showAdd={showAdd} closeAdd={closeAdd} />
       <CloneProjectModal
         show={showClone}
-        source={projects.find((p) => p.id === currentId) || null}
+        source={currentProject}
         projects={projects}
         onClose={closeClone}
+      />
+      <EditProjectModal
+        show={showEdit}
+        project={currentProject}
+        projects={projects}
+        onClose={closeEdit}
       />
 
       <AddRuleModal
