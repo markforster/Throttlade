@@ -7,13 +7,13 @@ Small, verifiable steps to implement conflict detection and UX.
 - [x] Add analyzer module `src/utils/rules/analyze.ts` exporting:
   - [x] `analyzeConflicts(rules: Rule[]): ConflictReport`
   - [x] Internal helpers: `coversMethod`, `isDefiniteSubset`, `isPossibleOverlap`, `isContainsRegexFor`, `isVeryBroadRegex` (plus `hasDotStar`, `isUniversalRegex`, `extractLiteralTokens`, `literalHead`, etc.)
-- [ ] Integrate analyzer in Manage Order modal:
+- [x] Integrate analyzer in Manage Order modal:
   - [ ] Compute `report` on `list` and update on drag/move
-  - [ ] Show inline badges per item: “Never matches” (definite) / “May not match” (possible)
-  - [ ] Header summary: “Conflicts: X definite, Y possible”
-- [ ] Integrate analyzer in Rules table:
-  - [ ] Compute `report` for the current project rules
-  - [ ] Row‑level badge and tooltip listing first blocker with reason
+  - [x] Show inline badges per item: “Never matches” (definite) / “May not match” (possible)
+  - [x] Header summary: “Conflicts: X definite, Y possible”
+- [x] Integrate analyzer in Rules table:
+  - [x] Compute `report` for the current project rules
+  - [x] Row‑level badge and tooltip listing first blocker with reason
   - [ ] Quick action in tooltip: “Move above blocker” (reorder and save)
 - [ ] Safe‑guard: analyzer behind a try/catch; never blocks rendering on errors
 
