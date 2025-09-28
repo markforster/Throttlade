@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        env:
+          CI: true
+        run: npm test -- --ci
+
+      - name: Upload coverage HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: reports/coverage
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Jest HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-report
+          path: reports/jest
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload LCOV
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: reports/coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 14
+
