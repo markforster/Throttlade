@@ -19,6 +19,7 @@
     "dev:watch": "npm run dev && npm run watch:theme",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "serve:demo": "http-server demo -p 5500 -c-1",
     "watch:theme": "sass --watch --load-path=node_modules src/theme/bootstrap.scss:src/theme/bootstrap.css"
   },
@@ -28,13 +29,14 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "esbuild": "^0.23.0",
+    "http-server": "^14.1.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.1.3",
     "jest-environment-jsdom": "^30.1.2",
+    "jest-html-reporters": "^3.1.7",
+    "sass": "^1.79.4",
     "ts-jest": "^29.4.4",
-    "typescript": "^5.6.0",
-    "http-server": "^14.1.1",
-    "sass": "^1.79.4"
+    "typescript": "^5.6.0"
   },
   "author": "bethehedgehog",
   "license": "ISC",
