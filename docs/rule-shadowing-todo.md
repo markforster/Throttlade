@@ -24,11 +24,11 @@ Small, verifiable steps to implement conflict detection and UX.
   - [x] Show callout if definite/possible shadowing detected
 - [x] “Preview match” helper:
   - [x] Input URL + method; show which rule would match first (uses current semantics)
-- [ ] Regex validation in Add/Edit modal: compile on change; show invalid, disable Save
-- [ ] Modal alert: include first blocker info and a “Move above blocker” inline action
-- [ ] Persist last preview URL/method for the session (quality of life)
-- [ ] Preview “evaluation path” (ordered checks) in compact list
-- [ ] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table
+ - [x] Regex validation in Add/Edit modal: compile on change; show invalid, disable Save
+ - [x] Modal alert: include first blocker info and a “Move above blocker” inline action
+ - [x] Persist last preview URL/method for the session (quality of life)
+ - [x] Preview “evaluation path” (ordered checks) in compact list
+ - [x] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table (plus tests)
 
 ### Phase 2 — Authoring Feedback (Stepwise Plan)
 
@@ -59,7 +59,6 @@ Small, verifiable steps to implement conflict detection and UX.
 ## Deferred (Separate Branch)
 
 - [ ] “Which rule wins?” simulator panel on Rules tab (URL + Method, ordered evaluation and winner)
-- [ ] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table
 - [x] Unit tests (Jest):
   - [x] `coversMethod` matrix tests (Any vs specific)
   - [x] Non‑regex substring cases (equal, super/sub‑string, disjoint)
@@ -95,8 +94,8 @@ Small, verifiable steps to implement conflict detection and UX.
 - [x] `AddRuleModal` (`src/components/modals/AddRuleModal.tsx:1`):
   - [x] Analyze draft values vs current ordered rules, excluding self on edit
   - [x] Show callout when applicable
-  - [ ] Add regex invalid state + disable Save
-  - [ ] Add inline “Move above blocker” action
+  - [x] Add regex invalid state + disable Save
+  - [x] Add inline “Move above blocker” action
 
 ## Acceptance Checks
 
@@ -105,5 +104,5 @@ Small, verifiable steps to implement conflict detection and UX.
 - [ ] Changing order removes/introduces badges live in Manage Order modal
 - [x] Quick action successfully moves a rule above its first blocker and saves
 - [x] Add/Edit modal warns when the new rule would be shadowed
-- [ ] Regex invalid state prevents Save and shows explanation
+- [x] Regex invalid state prevents Save and shows explanation
 - [ ] Simulator panel correctly identifies winning rule and ordered evaluation

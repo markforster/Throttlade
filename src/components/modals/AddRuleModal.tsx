@@ -5,6 +5,7 @@ import { Plus, ExclamationTriangleFill } from "react-bootstrap-icons";
 
 import type { Rule } from "../../types/types";
 import { analyzeConflicts, type ConflictReport } from "../../utils/rules/analyze";
+import { getFirstMatch, getEvaluationPath } from "../../utils/rules/preview";
 
 const DEFAULT_DELAY = 2000;
 
@@ -143,56 +144,13 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
   const firstMatch = React.useMemo(() => {
     const url = previewUrl.trim();
     if (!url) return null;
-    const m = (previewMethod || "GET").toUpperCase();
-    const match = simulatedList.find((r) => {
-      if (r.method && r.method.toUpperCase() !== m) return false;
-      try {
-        return r.isRegex
-          ? new RegExp(r.pattern).test(url)
-          : url.includes(r.pattern);
-      } catch {
-        return false;
-      }
-    });
-    if (!match) return null;
-    const index = simulatedList.findIndex((r) => r.id === match.id);
-    return { index, rule: match };
+    return getFirstMatch(simulatedList, url, previewMethod || "GET");
   }, [previewUrl, previewMethod, simulatedList]);
 
   const evaluationSteps = React.useMemo(() => {
-    const steps: { idx: number; text: string; win?: boolean }[] = [];
     const url = previewUrl.trim();
-    if (!url) return steps;
-    const m = (previewMethod || "GET").toUpperCase();
-    for (let i = 0; i < simulatedList.length; i++) {
-      const r = simulatedList[i];
-      const idx = i + 1;
-      const methodLabel = r.method ? r.method.toUpperCase() : "Any";
-      if (r.method && r.method.toUpperCase() !== m) {
-        steps.push({ idx, text: `#${idx}: method mismatch (${methodLabel} ≠ ${m}) → skip` });
-        continue;
-      }
-      if (r.isRegex) {
-        try {
-          const re = new RegExp(r.pattern);
-          if (re.test(url)) {
-            steps.push({ idx, text: `#${idx}: regex matches → WIN`, win: true });
-            break;
-          }
-          steps.push({ idx, text: `#${idx}: regex no match → skip` });
-        } catch {
-          steps.push({ idx, text: `#${idx}: invalid regex → skip` });
-        }
-      } else {
-        const lit = r.pattern || "";
-        if (url.includes(lit)) {
-          steps.push({ idx, text: `#${idx}: includes '${lit}' → WIN`, win: true });
-          break;
-        }
-        steps.push({ idx, text: `#${idx}: does not include '${lit}' → skip` });
-      }
-    }
-    return steps;
+    if (!url) return [] as ReturnType<typeof getEvaluationPath>;
+    return getEvaluationPath(simulatedList, url, previewMethod || "GET");
   }, [previewUrl, previewMethod, simulatedList]);
 
   const handleChange =
