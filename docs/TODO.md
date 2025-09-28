@@ -57,11 +57,16 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 - [x] Rules actions icon‑only (Edit/Delete) with visually‑hidden labels
 - [x] Help tooltip icon for rules ordering next to “Current rules”
 
-### Rules Table polish (next)
+### Rules Table polish
 
-- [ ] Conflict badges: replace "Never matches" / "May not match" text with icon-only badges and keep details in a tooltip/popover.
-- [ ] Columns: move Method before URL / Path; set a fixed width for method badges sufficient for "DELETE".
-- [ ] Delay column: rename header to "Delay (ms)"; in rows, display just the number (no "ms" suffix).
+- [x] Conflict badges: replace text with icon-only badges and show details via tooltip.
+  - [x] Icons are outline-only (transparent fill) with white stroke so badge color shows through.
+- [x] Columns: move Method before URL / Path; set a fixed width for method badges sufficient for "DELETE".
+- [x] Delay column: rename header to "Delay (ms)"; in rows, display just the number (no "ms" suffix).
+
+### Theme/Text visibility
+
+- [x] Global text color fix: ensure headings, paragraphs, labels, and inputs render in black for visibility.
 
 ## QA & Validation
 
