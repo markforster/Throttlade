@@ -33,4 +33,4 @@ This snapshot captures work completed after the v0.0.2 UX pass.
 
 - Refactor options.tsx into components/hooks (see TODO.md Refactoring)
 - Advanced table features: search, grouping, view-only sorting
-- Rule management: per-rule enable/disable, reorder rules (modal or drag-and-drop)
+- Rule management: per-rule enable/disable

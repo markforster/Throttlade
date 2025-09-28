@@ -99,9 +99,9 @@ Small, verifiable steps to implement conflict detection and UX.
 
 ## Acceptance Checks
 
-- [ ] With a broad top rule (`.*`), all later rules show “Never matches”
-- [ ] With `api` above `/api/v1`, later shows “Never matches” (non‑regex)
-- [ ] Changing order removes/introduces badges live in Manage Order modal
+- [x] With a broad top rule (`.*`), all later rules show “Never matches”
+- [x] With `api` above `/api/v1`, later shows “Never matches” (non‑regex)
+- [x] Changing order removes/introduces badges live in Manage Order modal
 - [x] Quick action successfully moves a rule above its first blocker and saves
 - [x] Add/Edit modal warns when the new rule would be shadowed
 - [x] Regex invalid state prevents Save and shows explanation

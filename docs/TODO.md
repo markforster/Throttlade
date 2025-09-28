@@ -19,7 +19,8 @@ This is the live backlog. Completed items have been moved to `TODO.v0.0.1.md`.
 
 - [ ] Project domain affinity: store `origins: string[]` per project and auto‑suggest selection based on active tab origin
 - [ ] Import/export projects and rules as JSON
-- [ ] Reorder projects and rule ordering per project (drag‑and‑drop)
+- [ ] Reorder projects (drag‑and‑drop)
+- [x] Rule ordering per project (drag‑and‑drop)
 
 ## UX Improvements
 
@@ -211,29 +212,28 @@ Allow users to change the display sort without changing the underlying storage o
 
 These features refine how users manage rules themselves (order, safety, per‑rule activation). They should integrate with existing project storage and broadcasting without disrupting current behaviors unless explicitly invoked.
 
-### Reordering Rules (Iteration 1)
+### Reordering Rules (Completed)
 
-Let users change rule order (which determines match precedence). Start with a simple modal UI rather than inline drag‑and‑drop; consider DnD in a later iteration.
+Let users change rule order (which determines match precedence).
 
-- [ ] Add a “Manage order” button near the rules header
-- [ ] Open a modal listing current rules (pattern + method) in order
-- [ ] Reorder mechanics (v1):
-  - [ ] Provide Up/Down controls to move a selected rule
-  - [ ] Optional: adopt a DnD library for smoother UX in a later pass
-- [ ] Persist order by writing the reordered array back to the selected project’s `rules`
-- [ ] Do not mutate rule contents (ids unchanged); only array order changes
-- [ ] Close modal on save; bridge rebroadcasts; runtime throttling reflects new order
-- [ ] A11y: keyboard support for moving items; focus management in modal
+- [x] Add a “Manage order” button near the rules header
+- [x] Open a modal listing current rules (pattern + method) in order
+- [x] Reorder mechanics: drag‑and‑drop via `@dnd-kit` with a visible handle
+  - [ ] Provide Up/Down controls to move a selected rule (kept as hidden fallback)
+  - [x] Keyboard support for sortable lists via `KeyboardSensor`
+- [x] Persist order by writing the reordered array back to the selected project’s `rules`
+- [x] Do not mutate rule contents (ids unchanged); only array order changes
+- [x] Close modal on save; storage change rebroadcast updates UI
 
 ### Confirm Delete Rule
 
 Prevent accidental deletions by confirming intent before removing a rule.
 
-- [ ] Replace direct delete with a confirm modal
-- [ ] Modal shows rule summary (pattern + method)
-- [ ] Buttons: Cancel (default) and Delete (danger)
-- [ ] Keyboard: Esc cancels; Enter confirms when Delete focused
-- [ ] After confirm, remove rule and update storage; table refreshes
+- [x] Replace direct delete with a confirm modal
+- [x] Modal shows rule summary (pattern + method)
+- [x] Buttons: Cancel (default) and Delete (danger)
+- [x] Keyboard: Esc cancels; Enter confirms when Delete focused
+- [x] After confirm, remove rule and update storage; table refreshes
 
 ### Enable / Disable Per Rule
 
