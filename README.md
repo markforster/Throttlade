@@ -1,3 +1,5 @@
+[![CI](https://github.com/markforster/Throttlade/actions/workflows/ci.yml/badge.svg)](https://github.com/markforster/Throttlade/actions/workflows/ci.yml)
+
 # Throttlade
 
   <div>
