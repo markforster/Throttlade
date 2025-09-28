@@ -45,3 +45,27 @@
   color: var(--bs-secondary) !important;
   border-color: var(--bs-secondary) !important;
 }
+
+/* Manage Order modal sizing + list appearance */
+.manage-order-modal .modal-dialog {
+  /* Wider modal: cap by viewport width; comfortably wide for content */
+  --bs-modal-width: min(90vw, 60rem);
+  /* Top/bottom breathing room using viewport-aware clamp */
+  --bs-modal-margin: clamp(3em, 8vh, 5em);
+}
+
+.manage-order-modal .modal-content {
+  /* Ensure the modal never exceeds viewport height minus margins */
+  max-height: calc(100vh - (2 * var(--bs-modal-margin)));
+  min-height: 20rem; /* sensible minimum height */
+}
+
+.manage-order-modal .modal-body {
+  /* In scrollable modals, body will scroll; add a max-height safety too */
+  overflow-y: auto;
+}
+
+.manage-order-modal .list-group-item {
+  /* Remove rounding so any item can be first/last without odd corners */
+  border-radius: 0 !important;
+}
