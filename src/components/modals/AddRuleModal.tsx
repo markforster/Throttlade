@@ -49,6 +49,21 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
     }
   }, [editingRule, show]);
 
+  const isPatternEmpty = !formValues.pattern.trim();
+  const isRegexInvalid = React.useMemo(() => {
+    if (!formValues.isRegex) return false;
+    const pat = formValues.pattern;
+    if (!pat.trim()) return false; // handled by required
+    try {
+      // eslint-disable-next-line no-new
+      new RegExp(pat);
+      return false;
+    } catch {
+      return true;
+    }
+  }, [formValues.isRegex, formValues.pattern]);
+  const canSubmit = !isPatternEmpty && !isRegexInvalid;
+
   // Build a simulated list with the form values applied
   const simulatedList: Rule[] = React.useMemo(() => {
     const tempRule: Rule = {
@@ -158,15 +173,21 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
             <Col xs={12}>
               <Form.Group controlId="modal-rule-pattern">
                 <Form.Label>Pattern</Form.Label>
-                <Form.Control
-                  name="pattern"
-                  placeholder="/api/* or ^https://api\\.site\\.com"
-                  required
-                  value={formValues.pattern}
-                  onChange={handleChange("pattern")}
-                />
-              </Form.Group>
-            </Col>
+              <Form.Control
+                name="pattern"
+                placeholder="/api/* or ^https://api\\.site\\.com"
+                required
+                value={formValues.pattern}
+                onChange={handleChange("pattern")}
+                isInvalid={isRegexInvalid}
+              />
+              {formValues.isRegex ? (
+                <Form.Control.Feedback type="invalid">
+                  Invalid regular expression. Please fix the pattern.
+                </Form.Control.Feedback>
+              ) : null}
+            </Form.Group>
+          </Col>
 
             <Col md={4} xs={12}>
               <Form.Group controlId="modal-rule-method">
@@ -271,7 +292,7 @@ export default function AddRuleModal({ show, editingRule, onClose, onSubmit, rul
           </Row>
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
-            <Button variant="primary" type="submit" title={submitLabel} aria-label={submitLabel}>
+            <Button variant="primary" type="submit" title={submitLabel} aria-label={submitLabel} disabled={!canSubmit}>
               <Plus className="me-1" size={16} />
               {submitLabel}
             </Button>

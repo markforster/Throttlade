@@ -28,6 +28,36 @@ Small, verifiable steps to implement conflict detection and UX.
 - [ ] Modal alert: include first blocker info and a “Move above blocker” inline action
 - [ ] Persist last preview URL/method for the session (quality of life)
 - [ ] Preview “evaluation path” (ordered checks) in compact list
+- [ ] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table
+
+### Phase 2 — Authoring Feedback (Stepwise Plan)
+
+1) Regex validation (low risk)
+- Add invalid state to Pattern on `new RegExp(pattern)` error; show brief help; disable Save.
+- File: `src/components/modals/AddRuleModal.tsx`
+
+2) Conflict alert details (low risk)
+- Expand alert: “Blocked by #k: <pattern> (Method)”.
+- File: `src/components/modals/AddRuleModal.tsx`
+
+3) Inline “Move above blocker” in modal (medium)
+- Add small button in alert to reorder the simulated list; persist order on Save.
+- Files: `src/components/modals/AddRuleModal.tsx`, `src/components/app/options.tsx`
+
+4) Persist preview inputs (optional)
+- Keep last URL/Method during the session (e.g., sessionStorage).
+- File: `src/components/modals/AddRuleModal.tsx`
+
+5) Shared preview helper + tests (low risk)
+- Extract `getFirstMatch(rules, url, method)` and add unit tests.
+- Files: `src/utils/rules/preview.ts`, `tests/utils/rules/preview.test.ts`
+
+6) Preview “evaluation path” (optional)
+- Show ordered checks up to the winner under the Preview section.
+- File: `src/components/modals/AddRuleModal.tsx`
+
+## Deferred (Separate Branch)
+
 - [ ] “Which rule wins?” simulator panel on Rules tab (URL + Method, ordered evaluation and winner)
 - [ ] Extract preview helper util `getFirstMatch(rules, url, method)` to share between modal/table
 - [x] Unit tests (Jest):
